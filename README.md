@@ -10,13 +10,13 @@ A single-user web app for tracking household spending, budgets, income, and savi
 
 ## Getting started
 
-Requires Node 24 or newer.
+Requires Node 24 or newer and pnpm 9.
 
 ```bash
-npm install
+pnpm install
 cp server/.env.example server/.env
-npm run db:migrate
-npm run dev
+pnpm db:migrate
+pnpm dev
 ```
 
 The app runs at http://localhost:5173 and proxies `/api` to the API on port 3000.
@@ -27,13 +27,13 @@ Run these from the repo root.
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Starts the API and the client together |
-| `npm test` | Runs server and client tests |
-| `npm run typecheck` | Type-checks every workspace |
-| `npm run lint` | Lints the repo with ESLint |
-| `npm run build` | Builds the client for production |
-| `npm run db:migrate` | Creates and applies a migration after a schema change |
-| `npm run db:generate` | Regenerates the Prisma client |
+| `pnpm dev` | Starts the API and the client together |
+| `pnpm test` | Runs server and client tests |
+| `pnpm typecheck` | Type-checks every workspace |
+| `pnpm lint` | Lints the repo with ESLint |
+| `pnpm build` | Builds the client for production |
+| `pnpm db:migrate` | Creates and applies a migration after a schema change |
+| `pnpm db:generate` | Regenerates the Prisma client |
 
 ## Conventions
 

@@ -3,20 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "workspaces": [
-    "shared",
-    "server",
-    "client"
-  ],
   "scripts": {
-    "dev": "concurrently -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
-    "build": "npm run build -w client",
-    "typecheck": "npm run typecheck --workspaces",
+    "dev": "concurrently -n server,client -c blue,green \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
+    "build": "pnpm --filter client build",
+    "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
-    "test": "npm run test --workspaces --if-present",
-    "db:migrate": "npm run db:migrate -w server",
-    "db:generate": "npm run db:generate -w server",
-    "postinstall": "npm run db:generate"
+    "test": "pnpm -r --if-present test",
+    "db:migrate": "pnpm --filter server db:migrate",
+    "db:generate": "pnpm --filter server db:generate",
+    "postinstall": "pnpm db:generate"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -27,5 +22,6 @@
     "globals": "^17.13.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.71.2"
-  }
+  },
+  "packageManager": "pnpm@9.13.2"
 }
