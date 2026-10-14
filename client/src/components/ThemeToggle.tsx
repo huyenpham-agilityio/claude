@@ -1,4 +1,5 @@
 import { Moon, Sun } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/lib/theme'
 
@@ -6,8 +7,9 @@ import { useTheme } from '@/lib/theme'
 // the device; every press changes what is on screen.
 export function ThemeToggle() {
   const { theme, setPreference } = useTheme()
+  const { t } = useTranslation()
   const next = theme === 'dark' ? 'light' : 'dark'
-  const description = `Switch to ${next} theme`
+  const description = next === 'dark' ? t('theme.switchToDark') : t('theme.switchToLight')
   const Icon = next === 'dark' ? Moon : Sun
 
   return (

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { amountSchema, dateSchema, monthSchema, transactionTypeSchema } from './common.ts'
+import { msg } from './validation.ts'
 
 export const TRANSACTION_PAGE_SIZE = 50
 
@@ -15,13 +16,13 @@ export type Transaction = z.infer<typeof transactionSchema>
 
 // The type is not part of the input: it always follows the chosen category.
 export const transactionInputSchema = z.object({
-  categoryId: z.string().min(1, 'Choose a category'),
+  categoryId: z.string().min(1, msg('categoryRequired')),
   amount: amountSchema,
   date: dateSchema,
   note: z
     .string()
     .trim()
-    .max(200, 'Note must be at most 200 characters')
+    .max(200, msg('noteTooLong'))
     .transform((value) => value || null)
     .nullable()
     .default(null),

@@ -1,6 +1,7 @@
 import { type Transaction, monthSchema, transactionTypeSchema } from '@expenses/shared'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { CategoryDot } from '@/components/CategoryDot'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -16,6 +17,7 @@ import {
 import { useCurrency } from '@/lib/auth'
 import { useCategories } from '@/lib/categories'
 import { currentMonth, formatDay, formatMonth } from '@/lib/dates'
+import { useErrorText } from '@/lib/errors'
 import { formatMoney } from '@/lib/money'
 import { type TransactionFilters, useDeleteTransaction, useTransactions } from '@/lib/transactions'
 
@@ -68,6 +70,8 @@ type Editing = { transaction: Transaction | null } | null
 
 export function Transactions() {
   const currency = useCurrency()
+  const { t } = useTranslation()
+  const errorText = useErrorText()
   const [filters, updateFilters] = useFilters()
   const categories = useCategories()
   const transactions = useTransactions(filters)
@@ -100,9 +104,9 @@ export function Transactions() {
   return (
     <section>
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-2xl font-semibold">Transactions</h2>
+        <h2 className="text-2xl font-semibold">{t('transactions.title')}</h2>
         <Button onClick={() => setEditing({ transaction: null })} disabled={!categories.data}>
-          <Plus aria-hidden="true" /> Add transaction
+          <Plus aria-hidden="true" /> {t('transactions.add')}
         </Button>
       </div>
 
@@ -112,9 +116,9 @@ export function Transactions() {
 
       <dl className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
-          { label: 'Income', value: data?.totals.income },
-          { label: 'Expenses', value: data?.totals.expense },
-          { label: 'Net', value: data && data.totals.income - data.totals.expense },
+          { label: t('common.income'), value: data?.totals.income },
+          { label: t('common.expenses'), value: data?.totals.expense },
+          { label: t('common.net'), value: data && data.totals.income - data.totals.expense },
         ].map(({ label, value }) => (
           <div key={label} className="rounded-xl border px-4 py-3">
             <dt className="text-sm text-muted-foreground">{label}</dt>
@@ -127,24 +131,24 @@ export function Transactions() {
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:flex">
         <NativeSelect
-          aria-label="Type"
+          aria-label={t('common.type')}
           className="w-full sm:w-auto"
           value={filters.type ?? ''}
           onChange={(event) => updateFilters({ type: event.target.value || undefined })}
         >
-          <NativeSelectOption value="">All types</NativeSelectOption>
-          <NativeSelectOption value="expense">Expenses</NativeSelectOption>
-          <NativeSelectOption value="income">Income</NativeSelectOption>
+          <NativeSelectOption value="">{t('transactions.allTypes')}</NativeSelectOption>
+          <NativeSelectOption value="expense">{t('transactions.filterExpenses')}</NativeSelectOption>
+          <NativeSelectOption value="income">{t('transactions.filterIncome')}</NativeSelectOption>
         </NativeSelect>
         <NativeSelect
-          aria-label="Category"
+          aria-label={t('common.category')}
           className="w-full sm:w-auto"
           value={filters.categoryId ?? ''}
           onChange={(event) => updateFilters({ category: event.target.value || undefined })}
         >
-          <NativeSelectOption value="">All categories</NativeSelectOption>
+          <NativeSelectOption value="">{t('transactions.allCategories')}</NativeSelectOption>
           {transactionTypeSchema.options.map((type) => (
-            <NativeSelectOptGroup key={type} label={type === 'expense' ? 'Expenses' : 'Income'}>
+            <NativeSelectOptGroup key={type} label={type === 'expense' ? t('transactions.filterExpenses') : t('transactions.filterIncome')}>
               {categories.data
                 ?.filter((category) => category.type === type)
                 .map((category) => (
@@ -157,8 +161,8 @@ export function Transactions() {
         </NativeSelect>
         <Input
           type="search"
-          aria-label="Search notes and categories"
-          placeholder="Search"
+          aria-label={t('transactions.searchLabel')}
+          placeholder={t('transactions.searchPlaceholder')}
           className="col-span-2 sm:max-w-56"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -168,19 +172,19 @@ export function Transactions() {
       <div className="mt-6">
         {transactions.isPending && (
           <p role="status" className="text-sm text-muted-foreground">
-            Loading…
+            {t('common.loading')}
           </p>
         )}
         {transactions.isError && (
           <p role="alert" className="text-sm text-destructive">
-            Could not load transactions. {transactions.error.message}
+            {t('transactions.loadFailed', { message: errorText(transactions.error) })}
           </p>
         )}
         {data?.total === 0 && (
           <p className="rounded-xl border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
             {isFiltered
-              ? `Nothing in ${monthLabel} matches these filters.`
-              : `No transactions in ${monthLabel} yet.`}
+              ? t('transactions.noMatches', { month: monthLabel })
+              : t('transactions.emptyMonth', { month: monthLabel })}
           </p>
         )}
 
@@ -208,7 +212,10 @@ export function Transactions() {
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Edit ${transaction.category.name} ${signed(transaction)}`}
+                      aria-label={t('transactions.editLabel', {
+                        category: transaction.category.name,
+                        amount: signed(transaction),
+                      })}
                       onClick={() => setEditing({ transaction })}
                     >
                       <Pencil aria-hidden="true" />
@@ -216,7 +223,10 @@ export function Transactions() {
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Delete ${transaction.category.name} ${signed(transaction)}`}
+                      aria-label={t('transactions.deleteLabel', {
+                        category: transaction.category.name,
+                        amount: signed(transaction),
+                      })}
                       onClick={() => setDeleting(transaction)}
                     >
                       <Trash2 aria-hidden="true" />
@@ -228,23 +238,23 @@ export function Transactions() {
           ))}
 
         {data && data.pageCount > 1 && (
-          <nav aria-label="Pages" className="mt-6 flex items-center justify-between gap-4">
+          <nav aria-label={t('transactions.pages')} className="mt-6 flex items-center justify-between gap-4">
             <Button
               variant="outline"
               disabled={data.page <= 1}
               onClick={() => updateFilters({ page: String(data.page - 1) })}
             >
-              Newer
+              {t('transactions.newer')}
             </Button>
             <p className="text-sm text-muted-foreground">
-              Page {data.page} of {data.pageCount}
+              {t('transactions.pageOf', { page: data.page, count: data.pageCount })}
             </p>
             <Button
               variant="outline"
               disabled={data.page >= data.pageCount}
               onClick={() => updateFilters({ page: String(data.page + 1) })}
             >
-              Older
+              {t('transactions.older')}
             </Button>
           </nav>
         )}
@@ -258,15 +268,19 @@ export function Transactions() {
       />
       <ConfirmDialog
         open={deleting !== null}
-        title="Delete this transaction?"
+        title={t('transactions.deleteTitle')}
         description={
           deleting
-            ? `${deleting.category.name}, ${signed(deleting)} on ${formatDay(deleting.date)}. This cannot be undone.`
+            ? t('transactions.deleteDescription', {
+                category: deleting.category.name,
+                amount: signed(deleting),
+                date: formatDay(deleting.date),
+              })
             : ''
         }
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         pending={remove.isPending}
-        error={remove.error?.message ?? null}
+        error={errorText(remove.error)}
         onConfirm={() => deleting && remove.mutate(deleting.id, { onSuccess: closeDelete })}
         onClose={closeDelete}
       />

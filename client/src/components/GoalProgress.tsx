@@ -1,4 +1,5 @@
 import type { Goal } from '@expenses/shared'
+import { useTranslation } from 'react-i18next'
 import { ProgressBar } from '@/components/ProgressBar'
 import { useCurrency } from '@/lib/auth'
 import { formatLongDate, today } from '@/lib/dates'
@@ -8,29 +9,35 @@ import { formatMoney } from '@/lib/money'
 // A goal's bar, saved amount, and what it will take to reach it in time.
 export function GoalProgress({ goal }: { goal: Goal }) {
   const currency = useCurrency()
+  const { t } = useTranslation()
   const pace = goalPace(goal, today())
   const reached = pace.kind === 'reached'
 
   return (
     <div className="grid gap-2">
       <ProgressBar
-        label={`${goal.name} progress`}
+        label={t('savings.progressLabel', { name: goal.name })}
         value={goal.savedAmount}
         max={goal.targetAmount}
         tone={reached ? 'success' : 'default'}
       />
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
         <p className={reached ? 'font-medium text-success-text' : 'text-muted-foreground'}>
-          {pace.kind === 'reached' && 'Goal reached'}
-          {pace.kind === 'no-date' && 'No target date'}
+          {pace.kind === 'reached' && t('savings.reached')}
+          {pace.kind === 'no-date' && t('savings.noTargetDate')}
           {pace.kind === 'overdue' &&
-            `Target date ${formatLongDate(goal.targetDate!)} has passed`}
+            t('savings.overdue', { date: formatLongDate(goal.targetDate!) })}
           {pace.kind === 'monthly' &&
-            `${formatMoney(pace.amount, currency)} a month to reach it by ${formatLongDate(goal.targetDate!)}`}
+            t('savings.perMonth', {
+              amount: formatMoney(pace.amount, currency),
+              date: formatLongDate(goal.targetDate!),
+            })}
         </p>
         <p className="whitespace-nowrap tabular-nums">
           {formatMoney(goal.savedAmount, currency)}{' '}
-          <span className="text-muted-foreground">of {formatMoney(goal.targetAmount, currency)}</span>
+          <span className="text-muted-foreground">
+            {t('common.ofAmount', { amount: formatMoney(goal.targetAmount, currency) })}
+          </span>
         </p>
       </div>
     </div>

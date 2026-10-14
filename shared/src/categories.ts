@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { transactionTypeSchema } from './common.ts'
+import { msg } from './validation.ts'
 
 export const CATEGORY_COLORS = [
   '#ef4444',
@@ -17,10 +18,10 @@ export const CATEGORY_COLORS = [
 const nameSchema = z
   .string()
   .trim()
-  .min(1, 'Enter a name')
-  .max(40, 'Name must be at most 40 characters')
+  .min(1, msg('nameRequired'))
+  .max(40, msg('categoryNameTooLong'))
 
-const colorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Pick a colour')
+const colorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, msg('colorRequired'))
 
 export const categorySchema = z.object({
   id: z.string(),

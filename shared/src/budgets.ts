@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { amountSchema, monthSchema } from './common.ts'
+import { msg } from './validation.ts'
 
 // A budget is "close" once this share of its limit is spent.
 export const BUDGET_WARNING_RATIO = 0.8
@@ -25,7 +26,7 @@ export type Budget = z.infer<typeof budgetSchema>
 
 // Saving a budget for a category and month that already has one replaces it.
 export const budgetInputSchema = z.object({
-  categoryId: z.string().min(1, 'Choose a category'),
+  categoryId: z.string().min(1, msg('categoryRequired')),
   month: monthSchema,
   limitAmount: amountSchema,
 })

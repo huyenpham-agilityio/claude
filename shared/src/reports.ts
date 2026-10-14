@@ -1,14 +1,15 @@
 import { z } from 'zod'
 import { monthSchema } from './common.ts'
+import { msg } from './validation.ts'
 
 export const MAX_REPORT_MONTHS = 24
 
 // An inclusive range of whole months, e.g. 2026-05 to 2026-10.
 export const monthRangeSchema = z
   .object({ from: monthSchema, to: monthSchema })
-  .refine(({ from, to }) => from <= to, { message: 'Start must not be after end', path: ['from'] })
+  .refine(({ from, to }) => from <= to, { message: msg('rangeReversed'), path: ['from'] })
   .refine(({ from, to }) => monthsBetween(from, to) <= MAX_REPORT_MONTHS, {
-    message: `Choose at most ${MAX_REPORT_MONTHS} months`,
+    message: msg('rangeTooLong'),
     path: ['from'],
   })
 export type MonthRange = z.infer<typeof monthRangeSchema>

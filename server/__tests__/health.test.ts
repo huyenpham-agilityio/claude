@@ -19,7 +19,7 @@ describe('unknown API routes', () => {
     const res = await request(app).get('/api/nope')
 
     expect(res.status).toBe(404)
-    expect(res.body).toEqual({ error: { message: 'Not found' } })
+    expect(res.body).toEqual({ error: { code: 'notFound', message: 'Not found' } })
   })
 })
 
@@ -31,6 +31,6 @@ describe('malformed requests', () => {
       .send('{"email":')
 
     expect(res.status).toBe(400)
-    expect(res.body).toEqual({ error: { message: 'Invalid request' } })
+    expect(res.body).toEqual({ error: { code: 'invalidRequest', message: 'Invalid request' } })
   })
 })

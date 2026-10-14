@@ -1,3 +1,5 @@
+// Sets up the interface language before anything renders.
+import './lib/i18n.ts'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'

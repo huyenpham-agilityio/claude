@@ -1,8 +1,16 @@
+import '@/lib/i18n'
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach } from 'vitest'
+import { setLanguage } from '@/lib/language'
 
 afterEach(cleanup)
+
+// Tests run in English unless they switch; undo any switch between tests.
+afterEach(() => {
+  setLanguage('en')
+  localStorage.removeItem('language')
+})
 
 // jsdom has no ResizeObserver; charts only need it to exist.
 class ResizeObserverStub {

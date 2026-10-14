@@ -3,10 +3,13 @@ import type { z } from 'zod'
 
 export class ApiRequestError extends Error {
   readonly status: number
+  // The server's error code, for translating the message.
+  readonly code: string | undefined
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code?: string) {
     super(message)
     this.status = status
+    this.code = code
   }
 }
 
@@ -25,10 +28,10 @@ export async function apiFetch<T extends z.ZodType>(
 
   if (!res.ok) {
     const parsed = apiErrorSchema.safeParse(body)
-    throw new ApiRequestError(
-      res.status,
-      parsed.success ? parsed.data.error.message : `Request failed (${res.status})`,
-    )
+    if (parsed.success) {
+      throw new ApiRequestError(res.status, parsed.data.error.message, parsed.data.error.code)
+    }
+    throw new ApiRequestError(res.status, `Request failed (${res.status})`, 'requestFailed')
   }
 
   return schema.parse(body)

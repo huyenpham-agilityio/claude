@@ -29,7 +29,7 @@ function isUniqueViolation(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
 }
 
-const duplicateName = () => new HttpError(409, 'You already have a category with this name')
+const duplicateName = () => new HttpError(409, 'categoryNameTaken')
 
 export const categoriesRouter = Router()
 
@@ -59,7 +59,7 @@ categoriesRouter.patch('/:id', async (req, res) => {
   const data = categoryUpdateSchema.parse(req.body)
   const where = { id: req.params.id, userId: currentUser(req).id }
 
-  if (!(await prisma.category.findFirst({ where }))) throw new HttpError(404, 'Category not found')
+  if (!(await prisma.category.findFirst({ where }))) throw new HttpError(404, 'categoryNotFound')
 
   const row = await prisma.category
     .update({ where: { id: where.id }, data, include: withCount })
@@ -74,9 +74,9 @@ categoriesRouter.delete('/:id', async (req, res) => {
     where: { id: req.params.id, userId: currentUser(req).id },
     include: withCount,
   })
-  if (!row) throw new HttpError(404, 'Category not found')
+  if (!row) throw new HttpError(404, 'categoryNotFound')
   if (row._count.transactions > 0) {
-    throw new HttpError(409, 'This category still has transactions. Move or delete them first.')
+    throw new HttpError(409, 'categoryInUse')
   }
 
   await prisma.category.delete({ where: { id: row.id } })

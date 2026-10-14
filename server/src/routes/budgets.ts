@@ -82,9 +82,9 @@ budgetsRouter.put('/', async (req, res) => {
   const userId = currentUser(req).id
 
   const category = await prisma.category.findFirst({ where: { id: categoryId, userId } })
-  if (!category) throw new HttpError(400, 'Choose one of your categories')
+  if (!category) throw new HttpError(400, 'unknownCategory')
   if (category.type !== 'expense') {
-    throw new HttpError(400, 'Budgets can only be set for expense categories')
+    throw new HttpError(400, 'budgetExpenseOnly')
   }
 
   const row = await prisma.budget.upsert({
@@ -106,7 +106,7 @@ budgetsRouter.post('/copy', async (req, res) => {
     prisma.budget.findMany({ where: { userId, month: from } }),
     prisma.budget.findMany({ where: { userId, month: to }, select: { categoryId: true } }),
   ])
-  if (source.length === 0) throw new HttpError(400, 'There are no budgets to copy from that month')
+  if (source.length === 0) throw new HttpError(400, 'noBudgetsToCopy')
 
   const taken = new Set(existing.map((budget) => budget.categoryId))
   await prisma.budget.createMany({
@@ -121,7 +121,7 @@ budgetsRouter.delete('/:id', async (req, res) => {
   const { count } = await prisma.budget.deleteMany({
     where: { id: req.params.id, userId: currentUser(req).id },
   })
-  if (count === 0) throw new HttpError(404, 'Budget not found')
+  if (count === 0) throw new HttpError(404, 'budgetNotFound')
 
   res.json({ ok: true } satisfies OkResponse)
 })

@@ -44,7 +44,7 @@ describe('serving the built client', () => {
     const res = await request(app).get('/api/nope')
 
     expect(res.status).toBe(404)
-    expect(res.body).toEqual({ error: { message: 'Not found' } })
+    expect(res.body).toEqual({ error: { code: 'notFound', message: 'Not found' } })
   })
 
   it('still answers the API', async () => {

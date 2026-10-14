@@ -3,10 +3,12 @@ import {
   type Transaction,
   amountSchema,
   dateSchema,
+  msg,
   transactionTypeSchema,
 } from '@expenses/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, useWatch } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { FormField } from '@/components/FormField'
 import { Button } from '@/components/ui/button'
@@ -22,25 +24,30 @@ import { Input } from '@/components/ui/input'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { useCurrency } from '@/lib/auth'
 import { today } from '@/lib/dates'
+import { useErrorText } from '@/lib/errors'
 import { parseAmountInput, toAmountInput } from '@/lib/money'
 import { useSaveTransaction } from '@/lib/transactions'
 
 function formSchema(currency: string) {
   return z.object({
     type: transactionTypeSchema,
-    categoryId: z.string().min(1, 'Choose a category'),
+    categoryId: z.string().min(1, msg('categoryRequired')),
     amount: z
       .string()
       .transform((text) => parseAmountInput(text, currency))
       .pipe(amountSchema),
     date: dateSchema,
-    note: z.string().max(200, 'Note must be at most 200 characters'),
+    note: z.string().max(200, msg('noteTooLong')),
   })
 }
 
 type FormSchema = ReturnType<typeof formSchema>
 
-const TYPE_LABELS = { expense: 'Expense', income: 'Income' } as const
+const TYPE_LABELS = { expense: 'types.expense', income: 'types.income' } as const
+const NO_CATEGORIES = {
+  expense: 'transactions.noExpenseCategories',
+  income: 'transactions.noIncomeCategories',
+} as const
 
 interface TransactionDialogProps {
   open: boolean
@@ -51,13 +58,14 @@ interface TransactionDialogProps {
 }
 
 export function TransactionDialog({ open, ...formProps }: TransactionDialogProps) {
+  const { t } = useTranslation()
   return (
     <Dialog open={open} onOpenChange={(next) => !next && formProps.onClose()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{formProps.transaction ? 'Edit transaction' : 'Add transaction'}</DialogTitle>
+          <DialogTitle>{formProps.transaction ? t('transactions.edit') : t('transactions.add')}</DialogTitle>
           <DialogDescription className="sr-only">
-            Record an expense or income with its category, amount, and date.
+            {t('transactions.dialogDescription')}
           </DialogDescription>
         </DialogHeader>
         {/* Mounted only while open, so each opening starts from fresh values. */}
@@ -74,6 +82,8 @@ function TransactionForm({
 }: Omit<TransactionDialogProps, 'open'>) {
   const currency = useCurrency()
   const save = useSaveTransaction()
+  const { t } = useTranslation()
+  const errorText = useErrorText()
   const firstOfType = (type: Category['type']) =>
     categories.find((category) => category.type === type)?.id ?? ''
 
@@ -111,7 +121,7 @@ function TransactionForm({
         ),
       )}
     >
-      <div role="radiogroup" aria-label="Type" className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+      <div role="radiogroup" aria-label={t('common.type')} className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
         {transactionTypeSchema.options.map((option) => (
           <label key={option} className="cursor-pointer">
             <input
@@ -123,13 +133,13 @@ function TransactionForm({
               })}
             />
             <span className="block rounded-md px-3 py-1.5 text-center text-sm font-medium text-muted-foreground peer-checked:bg-background peer-checked:text-foreground peer-checked:shadow-sm peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50">
-              {TYPE_LABELS[option]}
+              {t(TYPE_LABELS[option])}
             </span>
           </label>
         ))}
       </div>
 
-      <FormField id="amount" label={`Amount (${currency})`} error={errors.amount?.message}>
+      <FormField id="amount" label={t('common.amountIn', { currency })} error={errors.amount?.message}>
         <Input
           id="amount"
           inputMode="decimal"
@@ -141,7 +151,7 @@ function TransactionForm({
         />
       </FormField>
 
-      <FormField id="categoryId" label="Category" error={errors.categoryId?.message}>
+      <FormField id="categoryId" label={t('common.category')} error={errors.categoryId?.message}>
         <NativeSelect
           id="categoryId"
           className="w-full"
@@ -150,7 +160,7 @@ function TransactionForm({
           {...register('categoryId')}
         >
           {options.length === 0 && (
-            <NativeSelectOption value="">No {type} categories yet</NativeSelectOption>
+            <NativeSelectOption value="">{t(NO_CATEGORIES[type])}</NativeSelectOption>
           )}
           {options.map((category) => (
             <NativeSelectOption key={category.id} value={category.id}>
@@ -160,7 +170,7 @@ function TransactionForm({
         </NativeSelect>
       </FormField>
 
-      <FormField id="date" label="Date" error={errors.date?.message}>
+      <FormField id="date" label={t('common.date')} error={errors.date?.message}>
         <Input
           id="date"
           type="date"
@@ -170,7 +180,7 @@ function TransactionForm({
         />
       </FormField>
 
-      <FormField id="note" label="Note (optional)" error={errors.note?.message}>
+      <FormField id="note" label={t('transactions.noteOptional')} error={errors.note?.message}>
         <Input
           id="note"
           autoComplete="off"
@@ -182,16 +192,16 @@ function TransactionForm({
 
       {save.error && (
         <p role="alert" className="text-sm text-destructive">
-          {save.error.message}
+          {errorText(save.error)}
         </p>
       )}
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={save.isPending}>
-          {transaction ? 'Save changes' : 'Add transaction'}
+          {transaction ? t('common.saveChanges') : t('transactions.add')}
         </Button>
       </DialogFooter>
     </form>

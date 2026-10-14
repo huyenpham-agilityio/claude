@@ -3,11 +3,12 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { apiFetch } from './api.ts'
 import { currentMonth, shiftMonth } from './dates.ts'
 
+// Each preset's label, as a translation key.
 export const RANGE_PRESETS = {
-  'last-3': 'Last 3 months',
-  'last-6': 'Last 6 months',
-  'last-12': 'Last 12 months',
-  'this-year': 'This year',
+  'last-3': 'reports.presets.last3',
+  'last-6': 'reports.presets.last6',
+  'last-12': 'reports.presets.last12',
+  'this-year': 'reports.presets.thisYear',
 } as const
 
 export type RangePreset = keyof typeof RANGE_PRESETS

@@ -1,6 +1,7 @@
-import { type Goal, amountSchema, dateSchema } from '@expenses/shared'
+import { type Goal, amountSchema, dateSchema, msg } from '@expenses/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { FormField } from '@/components/FormField'
 import { Button } from '@/components/ui/button'
@@ -14,12 +15,13 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { useCurrency } from '@/lib/auth'
+import { useErrorText } from '@/lib/errors'
 import { useSaveGoal } from '@/lib/goals'
 import { parseAmountInput, toAmountInput } from '@/lib/money'
 
 function formSchema(currency: string) {
   return z.object({
-    name: z.string().trim().min(1, 'Enter a name').max(60, 'Name must be at most 60 characters'),
+    name: z.string().trim().min(1, msg('nameRequired')).max(60, msg('goalNameTooLong')),
     targetAmount: z
       .string()
       .transform((text) => parseAmountInput(text, currency))
@@ -39,13 +41,14 @@ interface GoalDialogProps {
 }
 
 export function GoalDialog({ open, ...formProps }: GoalDialogProps) {
+  const { t } = useTranslation()
   return (
     <Dialog open={open} onOpenChange={(next) => !next && formProps.onClose()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{formProps.goal ? 'Edit goal' : 'New savings goal'}</DialogTitle>
+          <DialogTitle>{formProps.goal ? t('savings.editGoal') : t('savings.newSavingsGoal')}</DialogTitle>
           <DialogDescription className="sr-only">
-            Name the goal and choose how much to save, and optionally by when.
+            {t('savings.dialogDescription')}
           </DialogDescription>
         </DialogHeader>
         {/* Mounted only while open, so each opening starts from fresh values. */}
@@ -58,6 +61,8 @@ export function GoalDialog({ open, ...formProps }: GoalDialogProps) {
 function GoalForm({ goal, onClose }: Omit<GoalDialogProps, 'open'>) {
   const currency = useCurrency()
   const save = useSaveGoal()
+  const { t } = useTranslation()
+  const errorText = useErrorText()
 
   const {
     register,
@@ -82,7 +87,7 @@ function GoalForm({ goal, onClose }: Omit<GoalDialogProps, 'open'>) {
       className="grid gap-4"
       onSubmit={handleSubmit((values) => save.mutate({ id: goal?.id, ...values }, { onSuccess: onClose }))}
     >
-      <FormField id="name" label="Name" error={errors.name?.message}>
+      <FormField id="name" label={t('common.name')} error={errors.name?.message}>
         <Input
           id="name"
           autoComplete="off"
@@ -93,7 +98,7 @@ function GoalForm({ goal, onClose }: Omit<GoalDialogProps, 'open'>) {
         />
       </FormField>
 
-      <FormField id="targetAmount" label={`Target (${currency})`} error={errors.targetAmount?.message}>
+      <FormField id="targetAmount" label={t('savings.target', { currency })} error={errors.targetAmount?.message}>
         <Input
           id="targetAmount"
           inputMode="decimal"
@@ -104,7 +109,7 @@ function GoalForm({ goal, onClose }: Omit<GoalDialogProps, 'open'>) {
         />
       </FormField>
 
-      <FormField id="targetDate" label="Target date (optional)" error={errors.targetDate?.message}>
+      <FormField id="targetDate" label={t('savings.targetDateOptional')} error={errors.targetDate?.message}>
         <Input
           id="targetDate"
           type="date"
@@ -116,16 +121,16 @@ function GoalForm({ goal, onClose }: Omit<GoalDialogProps, 'open'>) {
 
       {save.error && (
         <p role="alert" className="text-sm text-destructive">
-          {save.error.message}
+          {errorText(save.error)}
         </p>
       )}
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={save.isPending}>
-          {goal ? 'Save changes' : 'Create goal'}
+          {goal ? t('common.saveChanges') : t('savings.createGoal')}
         </Button>
       </DialogFooter>
     </form>
