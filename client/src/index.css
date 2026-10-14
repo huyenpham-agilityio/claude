@@ -6,6 +6,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+    --color-success: var(--success);
+    --color-success-text: var(--success-text);
+    --color-warning: var(--warning);
+    --color-warning-text: var(--warning-text);
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
@@ -49,12 +53,19 @@
 }
 
 :root {
+    color-scheme: light;
     /* Chart series, validated for colour-blind separation and 3:1 contrast
        against the background (see the dataviz palette). */
     --chart-income: #2a78d6;
     --chart-expense: #eb6834;
     --chart-grid: #e1e0d9;
     --chart-axis: #c3c2b7;
+    /* Status colours. Fills reach 3:1 against the background and the bar
+       track; text reaches 4.5:1. */
+    --success: #059669;
+    --success-text: #047857;
+    --warning: #c2700c;
+    --warning-text: #b45309;
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -90,6 +101,16 @@
 }
 
 .dark {
+    color-scheme: dark;
+    /* The same hues stepped for the dark background, validated the same way. */
+    --chart-income: #3987e5;
+    --chart-expense: #d95926;
+    --chart-grid: #2c2c2a;
+    --chart-axis: #383835;
+    --success: #10b981;
+    --success-text: #34d399;
+    --warning: #f59e0b;
+    --warning-text: #fbbf24;
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);

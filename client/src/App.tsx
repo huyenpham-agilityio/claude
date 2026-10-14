@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { useCurrentUser, useLogout } from '@/lib/auth'
 
@@ -22,21 +23,24 @@ export function App() {
           <h1 className="text-lg font-semibold">
             <Link to="/">Household Expenses</Link>
           </h1>
-          {user && (
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="hidden truncate text-sm text-muted-foreground sm:inline">
-                {user.email}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={logout.isPending}
-                onClick={() => logout.mutate()}
-              >
-                Log out
-              </Button>
-            </div>
-          )}
+          <div className="flex min-w-0 items-center gap-3">
+            <ThemeToggle />
+            {user && (
+              <>
+                <span className="hidden truncate text-sm text-muted-foreground sm:inline">
+                  {user.email}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={logout.isPending}
+                  onClick={() => logout.mutate()}
+                >
+                  Log out
+                </Button>
+              </>
+            )}
+          </div>
         </div>
         {user && (
           <nav aria-label="Main" className="mx-auto flex max-w-4xl gap-1 overflow-x-auto px-2">

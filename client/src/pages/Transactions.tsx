@@ -200,7 +200,7 @@ export function Transactions() {
                     </div>
                     <p
                       className={`font-medium whitespace-nowrap tabular-nums ${
-                        transaction.type === 'income' ? 'text-emerald-600' : ''
+                        transaction.type === 'income' ? 'text-success-text' : ''
                       }`}
                     >
                       {signed(transaction)}
