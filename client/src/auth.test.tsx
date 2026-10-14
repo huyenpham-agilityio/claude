@@ -1,11 +1,12 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { signedInHandlers, user } from './test/fixtures.ts'
 import { mockApi, renderApp } from './test/renderApp.tsx'
 
-const user = { id: 'u1', email: 'me@example.com', currency: 'VND' }
 const signedOut = () => Response.json({ error: { message: 'Not signed in' } }, { status: 401 })
 const signedIn = () => Response.json({ user })
+const home = () => screen.findByRole('heading', { name: 'Transactions' })
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -19,20 +20,22 @@ describe('route protection', () => {
     expect(router.state.location.pathname).toBe('/login')
   })
 
-  it('shows the home page to a signed-in user', async () => {
-    mockApi({ 'GET /api/auth/me': signedIn })
+  it('shows the app to a signed-in user', async () => {
+    mockApi(signedInHandlers())
 
-    renderApp('/')
+    const router = renderApp('/')
 
-    expect(await screen.findByText(/signed in as me@example\.com/)).toBeInTheDocument()
+    expect(await home()).toBeInTheDocument()
+    expect(screen.getByText('me@example.com')).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/transactions')
   })
 
   it('keeps a signed-in user out of the login page', async () => {
-    mockApi({ 'GET /api/auth/me': signedIn })
+    mockApi(signedInHandlers())
 
     const router = renderApp('/login')
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/transactions'))
   })
 })
 
@@ -49,8 +52,9 @@ describe('login', () => {
   })
 
   it('signs in and then logs out', async () => {
-    const login = vi.fn(signedIn)
+    const login = vi.fn((_body: unknown) => signedIn())
     mockApi({
+      ...signedInHandlers(),
       'GET /api/auth/me': signedOut,
       'POST /api/auth/login': login,
       'POST /api/auth/logout': () => Response.json({ ok: true }),
@@ -61,8 +65,8 @@ describe('login', () => {
     await userEvent.type(screen.getByLabelText('Password'), 'correct-horse')
     await userEvent.click(screen.getByRole('button', { name: 'Log in' }))
 
-    expect(await screen.findByText(/signed in as me@example\.com/)).toBeInTheDocument()
-    expect(login).toHaveBeenCalledWith({ email: 'me@example.com', password: 'correct-horse' })
+    expect(await home()).toBeInTheDocument()
+    expect(login.mock.calls[0]![0]).toEqual({ email: 'me@example.com', password: 'correct-horse' })
 
     await userEvent.click(screen.getByRole('button', { name: 'Log out' }))
 
@@ -100,6 +104,7 @@ describe('register', () => {
 
   it('creates the account and lands on the home page', async () => {
     mockApi({
+      ...signedInHandlers(),
       'GET /api/auth/me': signedOut,
       'POST /api/auth/register': () => Response.json({ user }, { status: 201 }),
     })
@@ -109,7 +114,7 @@ describe('register', () => {
     await userEvent.type(screen.getByLabelText('Password'), 'correct-horse')
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
-    expect(await screen.findByText(/signed in as me@example\.com/)).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/')
+    expect(await home()).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/transactions')
   })
 })

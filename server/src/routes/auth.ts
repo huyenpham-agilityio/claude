@@ -14,6 +14,7 @@ import {
   deleteSession,
   sessionCookieOptions,
 } from '../auth/session.ts'
+import { DEFAULT_CATEGORIES } from '../categories/defaults.ts'
 import { prisma } from '../db.ts'
 import { env } from '../env.ts'
 import { HttpError } from '../errors.ts'
@@ -53,7 +54,11 @@ export function createAuthRouter({ registrationOpen }: AuthRouterOptions) {
     if (existing) throw new HttpError(409, 'An account with this email already exists')
 
     const user = await prisma.user.create({
-      data: { email, passwordHash: await hashPassword(password) },
+      data: {
+        email,
+        passwordHash: await hashPassword(password),
+        categories: { create: DEFAULT_CATEGORIES },
+      },
     })
 
     res.cookie(SESSION_COOKIE, await createSession(user.id), sessionCookieOptions)

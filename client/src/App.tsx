@@ -1,6 +1,11 @@
-import { Link, Outlet } from 'react-router'
+import { Link, NavLink, Outlet } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { useCurrentUser, useLogout } from '@/lib/auth'
+
+const NAV_LINKS = [
+  { to: '/transactions', label: 'Transactions' },
+  { to: '/categories', label: 'Categories' },
+]
 
 export function App() {
   const { data: user } = useCurrentUser()
@@ -15,7 +20,9 @@ export function App() {
           </h1>
           {user && (
             <div className="flex min-w-0 items-center gap-3">
-              <span className="truncate text-sm text-muted-foreground">{user.email}</span>
+              <span className="hidden truncate text-sm text-muted-foreground sm:inline">
+                {user.email}
+              </span>
               <Button
                 variant="outline"
                 size="sm"
@@ -27,6 +34,25 @@ export function App() {
             </div>
           )}
         </div>
+        {user && (
+          <nav aria-label="Main" className="mx-auto flex max-w-4xl gap-1 px-2">
+            {NAV_LINKS.map(({ to, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `-mb-px border-b-2 px-2 py-2 text-sm font-medium ${
+                    isActive
+                      ? 'border-foreground text-foreground'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+        )}
       </header>
       <main className="mx-auto max-w-4xl px-4 py-8">
         <Outlet />

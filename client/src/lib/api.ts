@@ -33,3 +33,7 @@ export async function apiFetch<T extends z.ZodType>(
 
   return schema.parse(body)
 }
+
+export function jsonBody(method: 'POST' | 'PATCH', body: unknown): RequestInit {
+  return { method, body: JSON.stringify(body) }
+}

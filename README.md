@@ -51,7 +51,7 @@ the API to stop anyone else signing up.
 
 1. Scaffold (done)
 2. Auth: register, login, logout, protected routes (done)
-3. Transactions and categories
+3. Transactions and categories (done)
 4. Budgets
 5. Income, savings goals, and dashboard
 6. Reports and CSV export

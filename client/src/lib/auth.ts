@@ -6,7 +6,7 @@ import {
   okResponseSchema,
 } from '@expenses/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ApiRequestError, apiFetch } from './api.ts'
+import { ApiRequestError, apiFetch, jsonBody } from './api.ts'
 
 const currentUserKey = ['auth', 'me'] as const
 
@@ -28,7 +28,7 @@ function useCredentialsMutation<T extends LoginInput | RegisterInput>(path: stri
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: T) =>
-      apiFetch(path, authResponseSchema, { method: 'POST', body: JSON.stringify(input) }),
+      apiFetch(path, authResponseSchema, jsonBody('POST', input)),
     onSuccess: ({ user }) => queryClient.setQueryData(currentUserKey, user),
   })
 }
@@ -47,4 +47,9 @@ export function useLogout() {
       queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== currentUserKey[0] })
     },
   })
+}
+
+// Currency of the signed-in account, for formatting amounts.
+export function useCurrency(): string {
+  return useCurrentUser().data?.currency ?? 'VND'
 }
