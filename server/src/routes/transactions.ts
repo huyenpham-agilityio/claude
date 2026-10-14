@@ -7,6 +7,7 @@ import {
   transactionListQuerySchema,
 } from '@expenses/shared'
 import { Router } from 'express'
+import { monthRange, toDate, toDay } from '../dates.ts'
 import { prisma } from '../db.ts'
 import { HttpError } from '../errors.ts'
 import type { Prisma } from '../generated/prisma/client.ts'
@@ -18,10 +19,6 @@ const withCategory = {
 
 type TransactionRow = Prisma.TransactionGetPayload<{ include: typeof withCategory }>
 
-// Dates are calendar days, stored as midnight UTC.
-const toDate = (day: string) => new Date(`${day}T00:00:00Z`)
-const toDay = (date: Date) => date.toISOString().slice(0, 10)
-
 function toTransaction(row: TransactionRow): Transaction {
   return {
     id: row.id,
@@ -30,14 +27,6 @@ function toTransaction(row: TransactionRow): Transaction {
     date: toDay(row.date),
     note: row.note,
     category: row.category,
-  }
-}
-
-function monthRange(month: string): Prisma.DateTimeFilter {
-  const [year, monthNumber] = month.split('-').map(Number) as [number, number]
-  return {
-    gte: new Date(Date.UTC(year, monthNumber - 1, 1)),
-    lt: new Date(Date.UTC(year, monthNumber, 1)),
   }
 }
 

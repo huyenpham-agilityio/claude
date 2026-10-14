@@ -1,4 +1,11 @@
-import type { Category, Transaction, TransactionListResponse, User } from '@expenses/shared'
+import type {
+  Budget,
+  BudgetListResponse,
+  Category,
+  Transaction,
+  TransactionListResponse,
+  User,
+} from '@expenses/shared'
 
 export const user: User = { id: 'u1', email: 'me@example.com', currency: 'VND' }
 
@@ -39,10 +46,28 @@ export function listResponse(items: Transaction[] = transactions): TransactionLi
   }
 }
 
+export const budgets: Budget[] = [
+  {
+    id: 'b-groceries',
+    month: '2026-10',
+    limitAmount: 2_000_000,
+    spent: 800_000,
+    category: { id: 'c-groceries', name: 'Groceries', color: '#22c55e' },
+  },
+]
+
+export function budgetListResponse(
+  items: Budget[] = budgets,
+  copyFrom: string | null = null,
+): BudgetListResponse {
+  return { month: '2026-10', budgets: items, copyFrom }
+}
+
 // Handlers for a signed-in session with the fixture data above.
 export function signedInHandlers() {
   return {
     'GET /api/auth/me': () => Response.json({ user }),
+    'GET /api/budgets': () => Response.json(budgetListResponse()),
     'GET /api/categories': () => Response.json({ categories }),
     'GET /api/transactions': () => Response.json(listResponse()),
   }

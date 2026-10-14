@@ -1,4 +1,5 @@
 export * from './auth.ts'
+export * from './budgets.ts'
 export * from './categories.ts'
 export * from './common.ts'
 export * from './health.ts'

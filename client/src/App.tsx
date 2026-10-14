@@ -4,6 +4,7 @@ import { useCurrentUser, useLogout } from '@/lib/auth'
 
 const NAV_LINKS = [
   { to: '/transactions', label: 'Transactions' },
+  { to: '/budgets', label: 'Budgets' },
   { to: '/categories', label: 'Categories' },
 ]
 

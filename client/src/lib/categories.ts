@@ -5,8 +5,9 @@ import {
   categoryResponseSchema,
   okResponseSchema,
 } from '@expenses/shared'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { apiFetch, jsonBody } from './api.ts'
+import { useInvalidateLedger } from './invalidate.ts'
 
 const categoriesKey = ['categories'] as const
 
@@ -17,21 +18,11 @@ export function useCategories() {
   })
 }
 
-// Transactions embed their category's name and colour, so refresh both.
-function useInvalidate() {
-  const queryClient = useQueryClient()
-  return () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: categoriesKey }),
-      queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-    ])
-}
-
 export function useCreateCategory() {
   return useMutation({
     mutationFn: (input: CategoryCreate) =>
       apiFetch('/categories', categoryResponseSchema, jsonBody('POST', input)),
-    onSuccess: useInvalidate(),
+    onSuccess: useInvalidateLedger(),
   })
 }
 
@@ -39,7 +30,7 @@ export function useUpdateCategory() {
   return useMutation({
     mutationFn: ({ id, ...input }: CategoryUpdate & { id: string }) =>
       apiFetch(`/categories/${id}`, categoryResponseSchema, jsonBody('PATCH', input)),
-    onSuccess: useInvalidate(),
+    onSuccess: useInvalidateLedger(),
   })
 }
 
@@ -47,6 +38,6 @@ export function useDeleteCategory() {
   return useMutation({
     mutationFn: (id: string) =>
       apiFetch(`/categories/${id}`, okResponseSchema, { method: 'DELETE' }),
-    onSuccess: useInvalidate(),
+    onSuccess: useInvalidateLedger(),
   })
 }

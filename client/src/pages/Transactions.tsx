@@ -1,9 +1,10 @@
 import { type Transaction, monthSchema, transactionTypeSchema } from '@expenses/shared'
-import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { CategoryDot } from '@/components/CategoryDot'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { MonthSwitcher } from '@/components/MonthSwitcher'
 import { TransactionDialog } from '@/components/TransactionDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +15,7 @@ import {
 } from '@/components/ui/native-select'
 import { useCurrency } from '@/lib/auth'
 import { useCategories } from '@/lib/categories'
-import { currentMonth, formatDay, formatMonth, shiftMonth } from '@/lib/dates'
+import { currentMonth, formatDay, formatMonth } from '@/lib/dates'
 import { formatMoney } from '@/lib/money'
 import { type TransactionFilters, useDeleteTransaction, useTransactions } from '@/lib/transactions'
 
@@ -105,26 +106,8 @@ export function Transactions() {
         </Button>
       </div>
 
-      <div className="mt-6 flex items-center justify-between gap-2 sm:justify-start">
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Previous month"
-          onClick={() => updateFilters({ month: shiftMonth(filters.month, -1) })}
-        >
-          <ChevronLeft aria-hidden="true" />
-        </Button>
-        <p className="min-w-40 text-center font-medium" aria-live="polite">
-          {monthLabel}
-        </p>
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Next month"
-          onClick={() => updateFilters({ month: shiftMonth(filters.month, 1) })}
-        >
-          <ChevronRight aria-hidden="true" />
-        </Button>
+      <div className="mt-6">
+        <MonthSwitcher month={filters.month} onChange={(month) => updateFilters({ month })} />
       </div>
 
       <dl className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">

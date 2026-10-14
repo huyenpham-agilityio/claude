@@ -5,8 +5,9 @@ import {
   transactionListResponseSchema,
   transactionResponseSchema,
 } from '@expenses/shared'
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 import { apiFetch, jsonBody } from './api.ts'
+import { useInvalidateLedger } from './invalidate.ts'
 
 export interface TransactionFilters {
   month: string
@@ -31,23 +32,13 @@ export function useTransactions(filters: TransactionFilters) {
   })
 }
 
-// Category rows show how many transactions they hold, so refresh both.
-function useInvalidate() {
-  const queryClient = useQueryClient()
-  return () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-      queryClient.invalidateQueries({ queryKey: ['categories'] }),
-    ])
-}
-
 export function useSaveTransaction() {
   return useMutation({
     mutationFn: ({ id, ...input }: TransactionInput & { id?: string }) =>
       id
         ? apiFetch(`/transactions/${id}`, transactionResponseSchema, jsonBody('PATCH', input))
         : apiFetch('/transactions', transactionResponseSchema, jsonBody('POST', input)),
-    onSuccess: useInvalidate(),
+    onSuccess: useInvalidateLedger(),
   })
 }
 
@@ -55,6 +46,6 @@ export function useDeleteTransaction() {
   return useMutation({
     mutationFn: (id: string) =>
       apiFetch(`/transactions/${id}`, okResponseSchema, { method: 'DELETE' }),
-    onSuccess: useInvalidate(),
+    onSuccess: useInvalidateLedger(),
   })
 }
