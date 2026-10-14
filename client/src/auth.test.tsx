@@ -6,7 +6,7 @@ import { mockApi, renderApp } from './test/renderApp.tsx'
 
 const signedOut = () => Response.json({ error: { message: 'Not signed in' } }, { status: 401 })
 const signedIn = () => Response.json({ user })
-const home = () => screen.findByRole('heading', { name: 'Transactions' })
+const home = () => screen.findByRole('heading', { name: 'Overview' })
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -27,7 +27,7 @@ describe('route protection', () => {
 
     expect(await home()).toBeInTheDocument()
     expect(screen.getByText('me@example.com')).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/transactions')
+    expect(router.state.location.pathname).toBe('/')
   })
 
   it('keeps a signed-in user out of the login page', async () => {
@@ -35,7 +35,7 @@ describe('route protection', () => {
 
     const router = renderApp('/login')
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/transactions'))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
 })
 
@@ -115,6 +115,6 @@ describe('register', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
     expect(await home()).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/transactions')
+    expect(router.state.location.pathname).toBe('/')
   })
 })

@@ -1,20 +1,21 @@
-import type { BudgetStatus } from '@expenses/shared'
+export type ProgressTone = 'default' | 'warning' | 'danger' | 'success'
 
-const FILL_CLASSES: Record<BudgetStatus, string> = {
-  ok: 'bg-primary',
+const FILL_CLASSES: Record<ProgressTone, string> = {
+  default: 'bg-primary',
   warning: 'bg-amber-500',
-  over: 'bg-destructive',
+  danger: 'bg-destructive',
+  success: 'bg-emerald-600',
 }
 
 interface ProgressBarProps {
   label: string
   value: number
   max: number
-  status: BudgetStatus
+  tone?: ProgressTone
 }
 
-// The bar fills up to its limit; anything beyond shows as a full bar.
-export function ProgressBar({ label, value, max, status }: ProgressBarProps) {
+// The bar fills up to its maximum; anything beyond shows as a full bar.
+export function ProgressBar({ label, value, max, tone = 'default' }: ProgressBarProps) {
   const percent = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0
 
   return (
@@ -26,10 +27,7 @@ export function ProgressBar({ label, value, max, status }: ProgressBarProps) {
       aria-valuenow={percent}
       className="h-2 overflow-hidden rounded-full bg-muted"
     >
-      <div
-        className={`h-full rounded-full ${FILL_CLASSES[status]}`}
-        style={{ width: `${percent}%` }}
-      />
+      <div className={`h-full rounded-full ${FILL_CLASSES[tone]}`} style={{ width: `${percent}%` }} />
     </div>
   )
 }

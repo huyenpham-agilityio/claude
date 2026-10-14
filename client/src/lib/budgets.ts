@@ -1,10 +1,13 @@
 import {
   type BudgetCopy,
   type BudgetInput,
+  type BudgetStatus,
   budgetListResponseSchema,
+  budgetStatus,
   budgetResponseSchema,
   okResponseSchema,
 } from '@expenses/shared'
+import type { ProgressTone } from '@/components/ProgressBar'
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 import { apiFetch, jsonBody } from './api.ts'
 import { useInvalidateLedger } from './invalidate.ts'
@@ -39,4 +42,15 @@ export function useDeleteBudget() {
     mutationFn: (id: string) => apiFetch(`/budgets/${id}`, okResponseSchema, { method: 'DELETE' }),
     onSuccess: useInvalidateLedger(),
   })
+}
+
+const BUDGET_TONES: Record<BudgetStatus, ProgressTone> = {
+  ok: 'default',
+  warning: 'warning',
+  over: 'danger',
+}
+
+// The progress bar colour for a budget's spending.
+export function budgetTone(spent: number, limit: number): ProgressTone {
+  return BUDGET_TONES[budgetStatus(spent, limit)]
 }

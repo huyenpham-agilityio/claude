@@ -2,6 +2,7 @@ import type {
   Budget,
   BudgetListResponse,
   Category,
+  Goal,
   Transaction,
   TransactionListResponse,
   User,
@@ -63,12 +64,23 @@ export function budgetListResponse(
   return { month: '2026-10', budgets: items, copyFrom }
 }
 
+export const goals: Goal[] = [
+  {
+    id: 'g-trip',
+    name: 'Trip to Japan',
+    targetAmount: 60_000_000,
+    savedAmount: 15_000_000,
+    targetDate: '2027-04-01',
+  },
+]
+
 // Handlers for a signed-in session with the fixture data above.
 export function signedInHandlers() {
   return {
     'GET /api/auth/me': () => Response.json({ user }),
     'GET /api/budgets': () => Response.json(budgetListResponse()),
     'GET /api/categories': () => Response.json({ categories }),
+    'GET /api/goals': () => Response.json({ goals }),
     'GET /api/transactions': () => Response.json(listResponse()),
   }
 }

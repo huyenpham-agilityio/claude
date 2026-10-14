@@ -9,7 +9,7 @@ import { MonthSwitcher } from '@/components/MonthSwitcher'
 import { ProgressBar } from '@/components/ProgressBar'
 import { Button } from '@/components/ui/button'
 import { useCurrency } from '@/lib/auth'
-import { useBudgets, useCopyBudgets, useDeleteBudget } from '@/lib/budgets'
+import { budgetTone, useBudgets, useCopyBudgets, useDeleteBudget } from '@/lib/budgets'
 import { useCategories } from '@/lib/categories'
 import { currentMonth, formatMonth } from '@/lib/dates'
 import { formatMoney } from '@/lib/money'
@@ -136,7 +136,7 @@ export function Budgets() {
                   label="All budgets"
                   value={totalSpent}
                   max={totalLimit}
-                  status={budgetStatus(totalSpent, totalLimit)}
+                  tone={budgetTone(totalSpent, totalLimit)}
                 />
               </div>
               <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
@@ -173,7 +173,7 @@ export function Budgets() {
                       label={`${budget.category.name} budget`}
                       value={budget.spent}
                       max={budget.limitAmount}
-                      status={budgetStatus(budget.spent, budget.limitAmount)}
+                      tone={budgetTone(budget.spent, budget.limitAmount)}
                     />
                   </div>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">

@@ -33,3 +33,13 @@ export function formatDay(day: string): string {
     month: 'short',
   })
 }
+
+// A full date for things that may be far off, like a savings target.
+export function formatLongDate(day: string): string {
+  const [year, monthNumber, date] = day.split('-').map(Number) as [number, number, number]
+  return new Date(year, monthNumber - 1, date).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}

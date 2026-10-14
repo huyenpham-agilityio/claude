@@ -1,11 +1,13 @@
-import { Navigate, type RouteObject } from 'react-router'
+import type { RouteObject } from 'react-router'
 import { App } from './App.tsx'
 import { GuestOnly, RequireAuth } from './components/RouteGuards.tsx'
 import { Budgets } from './pages/Budgets.tsx'
 import { Categories } from './pages/Categories.tsx'
 import { Login } from './pages/Login.tsx'
 import { NotFound } from './pages/NotFound.tsx'
+import { Overview } from './pages/Overview.tsx'
 import { Register } from './pages/Register.tsx'
+import { Savings } from './pages/Savings.tsx'
 import { Transactions } from './pages/Transactions.tsx'
 
 export const routes: RouteObject[] = [
@@ -16,10 +18,10 @@ export const routes: RouteObject[] = [
       {
         element: <RequireAuth />,
         children: [
-          // The dashboard will take over the index route in a later milestone.
-          { index: true, element: <Navigate to="/transactions" replace /> },
+          { index: true, element: <Overview /> },
           { path: 'transactions', element: <Transactions /> },
           { path: 'budgets', element: <Budgets /> },
+          { path: 'savings', element: <Savings /> },
           { path: 'categories', element: <Categories /> },
         ],
       },

@@ -5,6 +5,7 @@ import { errorHandler, notFound } from './middleware/error.ts'
 import { createAuthRouter } from './routes/auth.ts'
 import { budgetsRouter } from './routes/budgets.ts'
 import { categoriesRouter } from './routes/categories.ts'
+import { goalsRouter } from './routes/goals.ts'
 import { healthRouter } from './routes/health.ts'
 import { transactionsRouter } from './routes/transactions.ts'
 
@@ -23,6 +24,7 @@ export function createApp({ registrationOpen = env.REGISTRATION_OPEN }: AppOptio
   app.use('/api/auth', createAuthRouter({ registrationOpen }))
   app.use('/api/budgets', budgetsRouter)
   app.use('/api/categories', categoriesRouter)
+  app.use('/api/goals', goalsRouter)
   app.use('/api/transactions', transactionsRouter)
 
   app.use('/api', notFound)

@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button'
 import { useCurrentUser, useLogout } from '@/lib/auth'
 
 const NAV_LINKS = [
+  { to: '/', label: 'Overview' },
   { to: '/transactions', label: 'Transactions' },
   { to: '/budgets', label: 'Budgets' },
+  { to: '/savings', label: 'Savings' },
   { to: '/categories', label: 'Categories' },
 ]
 
@@ -36,13 +38,14 @@ export function App() {
           )}
         </div>
         {user && (
-          <nav aria-label="Main" className="mx-auto flex max-w-4xl gap-1 px-2">
+          <nav aria-label="Main" className="mx-auto flex max-w-4xl gap-1 overflow-x-auto px-2">
             {NAV_LINKS.map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}
+                end
                 className={({ isActive }) =>
-                  `-mb-px border-b-2 px-2 py-2 text-sm font-medium ${
+                  `-mb-px shrink-0 border-b-2 px-2 py-2 text-sm font-medium ${
                     isActive
                       ? 'border-foreground text-foreground'
                       : 'border-transparent text-muted-foreground hover:text-foreground'
