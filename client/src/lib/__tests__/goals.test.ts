@@ -1,6 +1,6 @@
 import type { Goal } from '@expenses/shared'
 import { describe, expect, it } from 'vitest'
-import { goalPace } from './goals.ts'
+import { goalPace } from '../goals.ts'
 
 const goal = (overrides: Partial<Goal>): Goal => ({
   id: 'g',

@@ -2,8 +2,8 @@ import type { Goal } from '@expenses/shared'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { goals, signedInHandlers } from './test/fixtures.ts'
-import { mockApi, renderApp } from './test/renderApp.tsx'
+import { goals, signedInHandlers } from './fixtures.ts'
+import { mockApi, renderApp } from './renderApp.tsx'
 
 afterEach(() => vi.unstubAllGlobals())
 

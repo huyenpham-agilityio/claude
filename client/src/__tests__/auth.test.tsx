@@ -1,8 +1,8 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { signedInHandlers, user } from './test/fixtures.ts'
-import { mockApi, renderApp } from './test/renderApp.tsx'
+import { signedInHandlers, user } from './fixtures.ts'
+import { mockApi, renderApp } from './renderApp.tsx'
 
 const signedOut = () => Response.json({ error: { message: 'Not signed in' } }, { status: 401 })
 const signedIn = () => Response.json({ user })

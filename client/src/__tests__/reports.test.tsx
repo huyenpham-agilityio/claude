@@ -2,10 +2,10 @@ import type { Report } from '@expenses/shared'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { currentMonth, shiftMonth } from './lib/dates.ts'
-import { presetRange } from './lib/reports.ts'
-import { signedInHandlers } from './test/fixtures.ts'
-import { mockApi, renderApp } from './test/renderApp.tsx'
+import { currentMonth, shiftMonth } from '../lib/dates.ts'
+import { presetRange } from '../lib/reports.ts'
+import { signedInHandlers } from './fixtures.ts'
+import { mockApi, renderApp } from './renderApp.tsx'
 
 afterEach(() => vi.unstubAllGlobals())
 

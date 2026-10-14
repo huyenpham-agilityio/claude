@@ -5,8 +5,8 @@ export default defineConfig({
     environment: 'node',
     // Test files share one SQLite database.
     fileParallelism: false,
-    include: ['test/**/*.test.ts'],
-    globalSetup: ['test/global-setup.ts'],
+    include: ['__tests__/**/*.test.ts'],
+    globalSetup: ['__tests__/global-setup.ts'],
     env: { NODE_ENV: 'test', DATABASE_URL: 'file:./test.db' },
   },
 })
