@@ -4,16 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Lets the browser draw its own areas (canvas, scrollbars) dark before
+         the stylesheet loads. The theme script below keeps both in step. -->
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#ffffff" />
     <title>Household Expenses</title>
     <script>
       // Apply the saved or system theme before the first paint, so a dark
-      // page never flashes light. Mirrors resolveTheme in src/lib/theme.ts.
+      // page never flashes light. Mirrors resolveTheme and applyTheme in
+      // src/lib/theme.ts; src/lib/__tests__/theme.test.ts runs this script to
+      // keep the two in step.
       try {
         var saved = localStorage.getItem('theme')
         var dark =
           saved === 'dark' ||
           (saved !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-        if (dark) document.documentElement.classList.add('dark')
+        var root = document.documentElement
+        root.classList.toggle('dark', dark)
+        root.style.colorScheme = dark ? 'dark' : 'light'
+        document.querySelector('meta[name="theme-color"]').content = dark ? '#0a0a0a' : '#ffffff'
       } catch (error) {}
     </script>
   </head>

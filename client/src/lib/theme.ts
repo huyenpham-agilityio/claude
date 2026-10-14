@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
 export type ThemePreference = 'system' | 'light' | 'dark'
 export type Theme = 'light' | 'dark'
 
-// index.html reads the same key before the app loads.
-const STORAGE_KEY = 'theme'
-const DARK_QUERY = '(prefers-color-scheme: dark)'
-
-export const THEME_ORDER: ThemePreference[] = ['system', 'light', 'dark']
+// index.html's pre-paint script uses the same key, query, and colours; a test
+// runs that script to keep them in step.
+export const STORAGE_KEY = 'theme'
+export const DARK_QUERY = '(prefers-color-scheme: dark)'
+// Browser chrome colour for each theme (the page background).
+export const THEME_COLORS: Record<Theme, string> = { light: '#ffffff', dark: '#0a0a0a' }
 
 function systemTheme(): Theme {
   return window.matchMedia(DARK_QUERY).matches ? 'dark' : 'light'
@@ -38,28 +39,72 @@ function savePreference(preference: ThemePreference) {
 }
 
 function applyTheme(theme: Theme) {
-  document.documentElement.classList.toggle('dark', theme === 'dark')
+  const root = document.documentElement
+  root.classList.toggle('dark', theme === 'dark')
+  root.style.colorScheme = theme
+  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute(
+    'content',
+    THEME_COLORS[theme],
+  )
 }
 
-// The user's theme choice, applied to the page and remembered. While set to
-// "system" it follows the operating system as that changes.
-export function useTheme() {
-  const [preference, setPreference] = useState<ThemePreference>(readPreference)
+interface ThemeState {
+  preference: ThemePreference
+  // What the preference currently resolves to; changes with the operating
+  // system while the preference is "system".
+  theme: Theme
+}
 
-  useEffect(() => {
-    applyTheme(resolveTheme(preference))
-    if (preference !== 'system') return
+function stateFor(preference: ThemePreference): ThemeState {
+  return { preference, theme: resolveTheme(preference) }
+}
 
-    const query = window.matchMedia(DARK_QUERY)
-    const follow = () => applyTheme(systemTheme())
-    query.addEventListener('change', follow)
-    return () => query.removeEventListener('change', follow)
-  }, [preference])
+// One shared store, so every component and every open tab agree on the
+// preference. While it is "system", the page follows the operating system.
+let state: ThemeState = stateFor(readPreference())
+const listeners = new Set<() => void>()
 
-  const choose = (next: ThemePreference) => {
-    savePreference(next)
-    setPreference(next)
+function update(next: ThemePreference) {
+  state = stateFor(next)
+  applyTheme(state.theme)
+  for (const listener of listeners) listener()
+}
+
+// Another tab changed the saved preference.
+function onStorage(event: StorageEvent) {
+  if (event.key === STORAGE_KEY || event.key === null) update(readPreference())
+}
+
+// The operating system switched between light and dark.
+function onSystemChange() {
+  if (state.preference === 'system') update('system')
+}
+
+function subscribe(listener: () => void) {
+  if (listeners.size === 0) {
+    // Catch up on anything that changed while nothing was listening.
+    state = stateFor(readPreference())
+    applyTheme(state.theme)
+    window.addEventListener('storage', onStorage)
+    window.matchMedia(DARK_QUERY).addEventListener('change', onSystemChange)
   }
+  listeners.add(listener)
 
-  return [preference, choose] as const
+  return () => {
+    listeners.delete(listener)
+    if (listeners.size > 0) return
+    window.removeEventListener('storage', onStorage)
+    window.matchMedia(DARK_QUERY).removeEventListener('change', onSystemChange)
+  }
+}
+
+export function setThemePreference(next: ThemePreference) {
+  savePreference(next)
+  update(next)
+}
+
+// The saved preference and the theme it currently resolves to.
+export function useTheme() {
+  const current = useSyncExternalStore(subscribe, () => state)
+  return { ...current, setPreference: setThemePreference }
 }

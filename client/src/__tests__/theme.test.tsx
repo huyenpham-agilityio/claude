@@ -6,6 +6,18 @@ import { mockApi, renderApp } from './renderApp.tsx'
 
 const html = document.documentElement
 
+function systemPrefersDark() {
+  vi.spyOn(window, 'matchMedia').mockImplementation(
+    (query) =>
+      ({
+        matches: true,
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }) as unknown as MediaQueryList,
+  )
+}
+
 beforeEach(() => {
   localStorage.clear()
   html.classList.remove('dark')
@@ -17,41 +29,30 @@ afterEach(() => {
 })
 
 describe('theme toggle', () => {
-  it('steps through system, light, and dark, and remembers the choice', async () => {
+  it('switches the page on every press and remembers the choice', async () => {
     mockApi(signedInHandlers())
     renderApp('/')
 
-    const toggle = await screen.findByRole('button', { name: 'Theme: System. Switch to Light' })
-    expect(html).not.toHaveClass('dark')
-
-    await userEvent.click(toggle)
-    expect(screen.getByRole('button', { name: 'Theme: Light. Switch to Dark' })).toBeInTheDocument()
-    expect(localStorage.getItem('theme')).toBe('light')
-
-    await userEvent.click(screen.getByRole('button', { name: /^Theme: Light/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Switch to dark theme' }))
     expect(html).toHaveClass('dark')
     expect(localStorage.getItem('theme')).toBe('dark')
 
-    await userEvent.click(screen.getByRole('button', { name: /^Theme: Dark/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Switch to light theme' }))
     expect(html).not.toHaveClass('dark')
-    expect(localStorage.getItem('theme')).toBeNull()
+    expect(localStorage.getItem('theme')).toBe('light')
   })
 
-  it('starts dark when the system prefers it', async () => {
-    vi.spyOn(window, 'matchMedia').mockImplementation(
-      (query) =>
-        ({
-          matches: true,
-          media: query,
-          addEventListener: () => {},
-          removeEventListener: () => {},
-        }) as unknown as MediaQueryList,
-    )
+  it('starts dark when the system prefers it, and the first press goes light', async () => {
+    systemPrefersDark()
     mockApi(signedInHandlers())
     renderApp('/')
 
-    await screen.findByRole('button', { name: /^Theme: System/ })
+    const toggle = await screen.findByRole('button', { name: 'Switch to light theme' })
     expect(html).toHaveClass('dark')
+    expect(localStorage.getItem('theme')).toBeNull()
+
+    await userEvent.click(toggle)
+    expect(html).not.toHaveClass('dark')
   })
 
   it('starts from a saved choice', async () => {
@@ -59,7 +60,7 @@ describe('theme toggle', () => {
     mockApi(signedInHandlers())
     renderApp('/')
 
-    expect(await screen.findByRole('button', { name: /^Theme: Dark/ })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Switch to light theme' })).toBeInTheDocument()
     expect(html).toHaveClass('dark')
   })
 
@@ -69,6 +70,6 @@ describe('theme toggle', () => {
     })
     renderApp('/login')
 
-    expect(await screen.findByRole('button', { name: /^Theme: / })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /^Switch to (dark|light) theme$/ })).toBeInTheDocument()
   })
 })

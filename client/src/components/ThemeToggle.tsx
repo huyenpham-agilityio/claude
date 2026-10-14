@@ -1,20 +1,14 @@
-import { Monitor, Moon, Sun } from 'lucide-react'
+import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { THEME_ORDER, type ThemePreference, useTheme } from '@/lib/theme'
+import { useTheme } from '@/lib/theme'
 
-const THEMES: Record<ThemePreference, { label: string; Icon: typeof Sun }> = {
-  system: { label: 'System', Icon: Monitor },
-  light: { label: 'Light', Icon: Sun },
-  dark: { label: 'Dark', Icon: Moon },
-}
-
-// One button that steps through System, Light, and Dark. Its label says both
-// the current theme and what a press will switch to.
+// Switches between light and dark. Until the user picks one, the page follows
+// the device; every press changes what is on screen.
 export function ThemeToggle() {
-  const [preference, choose] = useTheme()
-  const next = THEME_ORDER[(THEME_ORDER.indexOf(preference) + 1) % THEME_ORDER.length]!
-  const { label, Icon } = THEMES[preference]
-  const description = `Theme: ${label}. Switch to ${THEMES[next].label}`
+  const { theme, setPreference } = useTheme()
+  const next = theme === 'dark' ? 'light' : 'dark'
+  const description = `Switch to ${next} theme`
+  const Icon = next === 'dark' ? Moon : Sun
 
   return (
     <Button
@@ -22,7 +16,7 @@ export function ThemeToggle() {
       size="icon-sm"
       aria-label={description}
       title={description}
-      onClick={() => choose(next)}
+      onClick={() => setPreference(next)}
     >
       <Icon aria-hidden="true" />
     </Button>
