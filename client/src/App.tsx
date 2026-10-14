@@ -46,14 +46,21 @@ export function App() {
           </div>
         </div>
         {user && (
-          <nav aria-label="Main" className="mx-auto flex max-w-4xl gap-1 overflow-x-auto px-2">
+          // The row itself overlaps the header's bottom border by 1px, so the
+          // active tab's underline covers that border. Putting the overlap on
+          // the tabs instead makes them overflow this scrolling row by 1px,
+          // which shows a vertical scrollbar.
+          <nav
+            aria-label="Main"
+            className="mx-auto -mb-px flex max-w-4xl gap-1 overflow-x-auto px-2"
+          >
             {NAV_LINKS.map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}
                 end
                 className={({ isActive }) =>
-                  `-mb-px shrink-0 border-b-2 px-2 py-2 text-sm font-medium ${
+                  `shrink-0 border-b-2 px-2 py-2 text-sm font-medium ${
                     isActive
                       ? 'border-foreground text-foreground'
                       : 'border-transparent text-muted-foreground hover:text-foreground'
