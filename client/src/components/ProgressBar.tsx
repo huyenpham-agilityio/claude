@@ -2,9 +2,9 @@ export type ProgressTone = 'default' | 'warning' | 'danger' | 'success'
 
 const FILL_CLASSES: Record<ProgressTone, string> = {
   default: 'bg-primary',
-  warning: 'bg-amber-500',
+  warning: 'bg-warning',
   danger: 'bg-destructive',
-  success: 'bg-emerald-600',
+  success: 'bg-success',
 }
 
 interface ProgressBarProps {

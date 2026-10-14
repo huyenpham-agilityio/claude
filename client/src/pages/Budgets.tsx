@@ -16,7 +16,7 @@ import { formatMoney } from '@/lib/money'
 
 const STATUS_TEXT_CLASSES: Record<BudgetStatus, string> = {
   ok: 'text-muted-foreground',
-  warning: 'text-amber-700',
+  warning: 'text-warning-text',
   over: 'text-destructive',
 }
 

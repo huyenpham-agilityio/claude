@@ -128,7 +128,7 @@ export function Overview() {
                     <div className="flex items-center gap-2 text-sm">
                       <CategoryDot color={budget.category.color} />
                       <span className="min-w-0 flex-1 truncate font-medium">{budget.category.name}</span>
-                      <span className={over ? 'text-destructive' : 'text-amber-700'}>
+                      <span className={over ? 'text-destructive' : 'text-warning-text'}>
                         {over
                           ? `Over by ${formatMoney(budget.spent - budget.limitAmount, currency)}`
                           : budget.spent === budget.limitAmount
@@ -166,7 +166,7 @@ export function Overview() {
                   </div>
                   <span
                     className={`whitespace-nowrap tabular-nums ${
-                      transaction.type === 'income' ? 'text-emerald-700' : ''
+                      transaction.type === 'income' ? 'text-success-text' : ''
                     }`}
                   >
                     {transaction.type === 'income' ? '+' : '−'}
