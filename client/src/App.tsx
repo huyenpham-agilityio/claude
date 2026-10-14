@@ -1,3 +1,4 @@
+import { LogOut } from 'lucide-react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Button } from '@/components/ui/button'
@@ -23,7 +24,7 @@ export function App() {
           <h1 className="text-lg font-semibold">
             <Link to="/">Household Expenses</Link>
           </h1>
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2">
             <ThemeToggle />
             {user && (
               <>
@@ -31,12 +32,14 @@ export function App() {
                   {user.email}
                 </span>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Log out"
+                  title="Log out"
                   disabled={logout.isPending}
                   onClick={() => logout.mutate()}
                 >
-                  Log out
+                  <LogOut aria-hidden="true" />
                 </Button>
               </>
             )}
