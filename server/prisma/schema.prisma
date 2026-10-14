@@ -19,10 +19,25 @@ model User {
   currency     String   @default("VND")
   createdAt    DateTime @default(now())
 
+  sessions     Session[]
   categories   Category[]
   transactions Transaction[]
   budgets      Budget[]
   savingsGoals SavingsGoal[]
+}
+
+// Only a SHA-256 hash of the session token is stored, so a leaked database
+// cannot be used to sign in.
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Category {

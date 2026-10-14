@@ -1,15 +1,4 @@
 import { createBrowserRouter } from 'react-router'
-import { App } from './App.tsx'
-import { Home } from './pages/Home.tsx'
-import { NotFound } from './pages/NotFound.tsx'
+import { routes } from './routes.tsx'
 
-export const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <App />,
-    children: [
-      { index: true, element: <Home /> },
-      { path: '*', element: <NotFound /> },
-    ],
-  },
-])
+export const router = createBrowserRouter(routes)

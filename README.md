@@ -35,15 +35,22 @@ Run these from the repo root.
 | `pnpm db:migrate` | Creates and applies a migration after a schema change |
 | `pnpm db:generate` | Regenerates the Prisma client |
 
+## Accounts
+
+Create your account at `/register`. The app is meant for one person, so once
+your account exists, set `REGISTRATION_OPEN=false` in `server/.env` and restart
+the API to stop anyone else signing up.
+
 ## Conventions
 
 - Money is stored as a whole number of the currency's smallest unit (VND by default).
 - Request and response shapes live in `shared/` and are validated on both sides.
+- Sessions are an httpOnly cookie; the database stores only a hash of the token.
 
 ## Roadmap
 
 1. Scaffold (done)
-2. Auth: register, login, logout, protected routes
+2. Auth: register, login, logout, protected routes (done)
 3. Transactions and categories
 4. Budgets
 5. Income, savings goals, and dashboard
