@@ -6,6 +6,8 @@ services:
     name: household-expenses
     runtime: node
     plan: free
+    # Closest Render region to Vietnam; put the Turso database nearby too.
+    region: singapore
     # NODE_ENV=production would make pnpm skip the build tools, so install
     # them explicitly.
     buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm build
