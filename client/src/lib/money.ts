@@ -1,12 +1,7 @@
+import { currencyFractionDigits as fractionDigits } from '@expenses/shared'
+
 // Amounts travel as whole numbers of the currency's smallest unit. These
 // helpers convert to and from what a person reads and types.
-
-function fractionDigits(currency: string): number {
-  return (
-    new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions()
-      .maximumFractionDigits ?? 0
-  )
-}
 
 export function formatMoney(amount: number, currency: string): string {
   const digits = fractionDigits(currency)

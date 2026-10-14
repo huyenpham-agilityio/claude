@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { to: '/transactions', label: 'Transactions' },
   { to: '/budgets', label: 'Budgets' },
   { to: '/savings', label: 'Savings' },
+  { to: '/reports', label: 'Reports' },
   { to: '/categories', label: 'Categories' },
 ]
 

@@ -54,5 +54,5 @@ the API to stop anyone else signing up.
 3. Transactions and categories (done)
 4. Budgets (done)
 5. Income, savings goals, and dashboard (done)
-6. Reports and CSV export
+6. Reports and CSV export (done)
 7. Polish and deploy

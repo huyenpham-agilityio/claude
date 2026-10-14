@@ -22,6 +22,11 @@ export const routes: RouteObject[] = [
           { path: 'transactions', element: <Transactions /> },
           { path: 'budgets', element: <Budgets /> },
           { path: 'savings', element: <Savings /> },
+          {
+            path: 'reports',
+            // Loaded on demand: the chart library is large and only used here.
+            lazy: async () => ({ Component: (await import('./pages/Reports.tsx')).Reports }),
+          },
           { path: 'categories', element: <Categories /> },
         ],
       },
