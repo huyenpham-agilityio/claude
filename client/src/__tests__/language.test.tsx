@@ -16,14 +16,14 @@ describe('language switch', () => {
     renderApp('/login')
     await screen.findByRole('heading', { name: 'Log in' })
 
-    await userEvent.click(screen.getByRole('button', { name: 'Tiếng Việt' }))
+    await userEvent.click(screen.getByRole('button', { name: 'VI, Tiếng Việt' }))
 
     expect(screen.getByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument()
     expect(screen.getByLabelText('Mật khẩu')).toBeInTheDocument()
     expect(document.documentElement.lang).toBe('vi')
     expect(localStorage.getItem('language')).toBe('vi')
 
-    await userEvent.click(screen.getByRole('button', { name: 'English' }))
+    await userEvent.click(screen.getByRole('button', { name: 'EN, English' }))
     expect(screen.getByRole('heading', { name: 'Log in' })).toBeInTheDocument()
   })
 
@@ -34,7 +34,7 @@ describe('language switch', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Log in' }))
     expect(await screen.findByText('Enter a valid email address')).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Tiếng Việt' }))
+    await userEvent.click(screen.getByRole('button', { name: 'VI, Tiếng Việt' }))
     expect(screen.getByText('Nhập địa chỉ email hợp lệ')).toBeInTheDocument()
     expect(screen.getByText('Nhập mật khẩu')).toBeInTheDocument()
   })

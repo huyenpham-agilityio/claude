@@ -70,6 +70,18 @@ describe('setLanguage', () => {
 })
 
 describe('useLanguage', () => {
+  it('starts in the browser language on a first visit, from the first render', async () => {
+    browserLanguages(['vi-VN'])
+    // A fresh copy of the module, as on page load.
+    vi.resetModules()
+    const fresh = await import('../language.ts')
+    const seen: string[] = []
+
+    renderHook(() => seen.push(fresh.useLanguage().language))
+
+    expect(seen[0]).toBe('vi')
+  })
+
   it('follows a change made in another tab', () => {
     const { result } = renderHook(() => useLanguage())
     expect(result.current.language).toBe('en')

@@ -57,7 +57,7 @@ export function compareNames(a: string, b: string, language: Locale): number {
 }
 
 // One shared store, so every component and every open tab agree.
-let language: Locale = currentLanguage()
+let language: Locale = readLanguage()
 const listeners = new Set<() => void>()
 
 function update(next: Locale) {
