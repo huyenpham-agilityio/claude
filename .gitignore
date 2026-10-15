@@ -33,3 +33,6 @@ dist-ssr
 # Generated
 server/src/generated
 coverage
+
+# Claude Code
+**/.claude/autoharness/
