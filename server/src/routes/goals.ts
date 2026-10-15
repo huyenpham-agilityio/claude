@@ -24,7 +24,7 @@ function toGoal(row: SavingsGoal): Goal {
 
 async function findOwnGoal(userId: string, id: string) {
   const goal = await prisma.savingsGoal.findFirst({ where: { id, userId } })
-  if (!goal) throw new HttpError(404, 'Savings goal not found')
+  if (!goal) throw new HttpError(404, 'goalNotFound')
   return goal
 }
 
@@ -76,7 +76,7 @@ goalsRouter.post('/:id/contributions', async (req, res) => {
     where: { id: goal.id, userId, savedAmount: { gte: -amount } },
     data: { savedAmount: { increment: amount } },
   })
-  if (count === 0) throw new HttpError(400, 'You cannot take out more than has been saved')
+  if (count === 0) throw new HttpError(400, 'withdrawTooMuch')
 
   const row = await prisma.savingsGoal.findUniqueOrThrow({ where: { id: goal.id } })
   res.json({ goal: toGoal(row) })
@@ -86,7 +86,7 @@ goalsRouter.delete('/:id', async (req, res) => {
   const { count } = await prisma.savingsGoal.deleteMany({
     where: { id: req.params.id, userId: currentUser(req).id },
   })
-  if (count === 0) throw new HttpError(404, 'Savings goal not found')
+  if (count === 0) throw new HttpError(404, 'goalNotFound')
 
   res.json({ ok: true } satisfies OkResponse)
 })

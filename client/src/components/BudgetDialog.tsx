@@ -1,6 +1,7 @@
-import { type Budget, type Category, amountSchema } from '@expenses/shared'
+import { type Budget, type Category, amountSchema, msg } from '@expenses/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { FormField } from '@/components/FormField'
 import { Button } from '@/components/ui/button'
@@ -17,11 +18,12 @@ import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { useCurrency } from '@/lib/auth'
 import { useSaveBudget } from '@/lib/budgets'
 import { formatMonth } from '@/lib/dates'
+import { useErrorText } from '@/lib/errors'
 import { parseAmountInput, toAmountInput } from '@/lib/money'
 
 function formSchema(currency: string) {
   return z.object({
-    categoryId: z.string().min(1, 'Choose a category'),
+    categoryId: z.string().min(1, msg('categoryRequired')),
     limitAmount: z
       .string()
       .transform((text) => parseAmountInput(text, currency))
@@ -42,13 +44,14 @@ interface BudgetDialogProps {
 }
 
 export function BudgetDialog({ open, ...formProps }: BudgetDialogProps) {
+  const { t } = useTranslation()
   return (
     <Dialog open={open} onOpenChange={(next) => !next && formProps.onClose()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{formProps.budget ? 'Edit budget' : 'Set budget'}</DialogTitle>
+          <DialogTitle>{formProps.budget ? t('budgets.edit') : t('budgets.set')}</DialogTitle>
           <DialogDescription>
-            The most you plan to spend in {formatMonth(formProps.month)}.
+            {t('budgets.dialogDescription', { month: formatMonth(formProps.month) })}
           </DialogDescription>
         </DialogHeader>
         {/* Mounted only while open, so each opening starts from fresh values. */}
@@ -66,6 +69,8 @@ function BudgetForm({
 }: Omit<BudgetDialogProps, 'open'>) {
   const currency = useCurrency()
   const save = useSaveBudget()
+  const { t } = useTranslation()
+  const errorText = useErrorText()
   // A budget's category is fixed; to move it, delete it and set a new one.
   const options = budget ? [budget.category] : availableCategories
 
@@ -88,7 +93,7 @@ function BudgetForm({
         save.mutate({ categoryId, month, limitAmount }, { onSuccess: onClose }),
       )}
     >
-      <FormField id="categoryId" label="Category" error={errors.categoryId?.message}>
+      <FormField id="categoryId" label={t('common.category')} error={errors.categoryId?.message}>
         <NativeSelect
           id="categoryId"
           className="w-full"
@@ -107,7 +112,7 @@ function BudgetForm({
 
       <FormField
         id="limitAmount"
-        label={`Monthly limit (${currency})`}
+        label={t('budgets.monthlyLimit', { currency })}
         error={errors.limitAmount?.message}
       >
         <Input
@@ -123,16 +128,16 @@ function BudgetForm({
 
       {save.error && (
         <p role="alert" className="text-sm text-destructive">
-          {save.error.message}
+          {errorText(save.error)}
         </p>
       )}
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={save.isPending}>
-          {budget ? 'Save changes' : 'Set budget'}
+          {budget ? t('common.saveChanges') : t('budgets.set')}
         </Button>
       </DialogFooter>
     </form>

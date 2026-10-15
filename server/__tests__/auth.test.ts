@@ -50,6 +50,10 @@ describe('POST /api/auth/register', () => {
     const res = await request(app).post('/api/auth/register').send(credentials)
 
     expect(res.status).toBe(409)
+    expect(res.body.error).toEqual({
+      code: 'emailTaken',
+      message: 'An account with this email already exists',
+    })
   })
 
   it('rejects invalid input with field issues', async () => {
@@ -62,6 +66,53 @@ describe('POST /api/auth/register', () => {
       'email',
       'password',
     ])
+  })
+
+  it('names each invalid field with a translatable code and English text', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'me@example.com', password: 'short' })
+
+    expect(res.body.error).toEqual({
+      code: 'invalidRequest',
+      message: 'Invalid request',
+      issues: [
+        {
+          path: 'password',
+          code: 'passwordTooShort',
+          message: 'Password must be at least 8 characters',
+        },
+      ],
+    })
+  })
+
+  it('creates default categories in English unless another language is chosen', async () => {
+    const english = request.agent(app)
+    await english.post('/api/auth/register').send(credentials).expect(201)
+    const vietnamese = request.agent(app)
+    await vietnamese
+      .post('/api/auth/register')
+      .send({ email: 'vi@example.com', password: 'correct-horse', locale: 'vi' })
+      .expect(201)
+
+    const names = async (agent: typeof english) =>
+      ((await agent.get('/api/categories')).body.categories as { name: string }[]).map(
+        (category) => category.name,
+      )
+    expect(await names(english)).toContain('Groceries')
+    const vietnameseNames = await names(vietnamese)
+    expect(vietnameseNames).toHaveLength(12)
+    expect(vietnameseNames).toEqual(expect.arrayContaining(['Đi chợ', 'Tiền nhà', 'Lương']))
+    expect(vietnameseNames).not.toContain('Groceries')
+  })
+
+  it('rejects an unsupported language', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ ...credentials, locale: 'fr' })
+
+    expect(res.status).toBe(400)
+    expect(await prisma.user.count()).toBe(0)
   })
 
   it('is refused when registration is closed', async () => {
@@ -97,6 +148,7 @@ describe('POST /api/auth/login', () => {
     expect(wrongPassword.status).toBe(401)
     expect(unknownEmail.status).toBe(401)
     expect(wrongPassword.body).toEqual(unknownEmail.body)
+    expect(wrongPassword.body.error.code).toBe('invalidCredentials')
     expect(wrongPassword.headers['set-cookie']).toBeUndefined()
   })
 })

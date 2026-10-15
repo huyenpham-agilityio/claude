@@ -32,7 +32,7 @@ function toTransaction(row: TransactionRow): Transaction {
 
 async function findOwnCategory(userId: string, categoryId: string) {
   const category = await prisma.category.findFirst({ where: { id: categoryId, userId } })
-  if (!category) throw new HttpError(400, 'Choose one of your categories')
+  if (!category) throw new HttpError(400, 'unknownCategory')
   return category
 }
 
@@ -92,7 +92,7 @@ transactionsRouter.patch('/:id', async (req, res) => {
   const userId = currentUser(req).id
 
   const existing = await prisma.transaction.findFirst({ where: { id: req.params.id, userId } })
-  if (!existing) throw new HttpError(404, 'Transaction not found')
+  if (!existing) throw new HttpError(404, 'transactionNotFound')
   const category = await findOwnCategory(userId, categoryId)
 
   const row = await prisma.transaction.update({
@@ -107,7 +107,7 @@ transactionsRouter.delete('/:id', async (req, res) => {
   const { count } = await prisma.transaction.deleteMany({
     where: { id: req.params.id, userId: currentUser(req).id },
   })
-  if (count === 0) throw new HttpError(404, 'Transaction not found')
+  if (count === 0) throw new HttpError(404, 'transactionNotFound')
 
   res.json({ ok: true } satisfies OkResponse)
 })

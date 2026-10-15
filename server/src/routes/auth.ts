@@ -1,6 +1,8 @@
 import {
+  type ApiError,
   type AuthResponse,
   type OkResponse,
+  apiErrorMessages,
   loginInputSchema,
   registerInputSchema,
 } from '@expenses/shared'
@@ -35,7 +37,9 @@ const credentialsLimiter = rateLimit({
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   skip: () => env.NODE_ENV === 'test',
-  message: { error: { message: 'Too many attempts. Try again in a few minutes.' } },
+  message: {
+    error: { code: 'tooManyAttempts', message: apiErrorMessages.tooManyAttempts },
+  } satisfies ApiError,
 })
 
 function toAuthResponse(user: User): AuthResponse {
@@ -46,18 +50,18 @@ export function createAuthRouter({ registrationOpen }: AuthRouterOptions) {
   const router = Router()
 
   router.post('/register', credentialsLimiter, async (req, res) => {
-    if (!registrationOpen) throw new HttpError(403, 'Registration is closed')
+    if (!registrationOpen) throw new HttpError(403, 'registrationClosed')
 
-    const { email, password } = registerInputSchema.parse(req.body)
+    const { email, password, locale } = registerInputSchema.parse(req.body)
 
     const existing = await prisma.user.findUnique({ where: { email } })
-    if (existing) throw new HttpError(409, 'An account with this email already exists')
+    if (existing) throw new HttpError(409, 'emailTaken')
 
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash: await hashPassword(password),
-        categories: { create: DEFAULT_CATEGORIES },
+        categories: { create: DEFAULT_CATEGORIES[locale] },
       },
     })
 
@@ -70,7 +74,7 @@ export function createAuthRouter({ registrationOpen }: AuthRouterOptions) {
 
     const user = await prisma.user.findUnique({ where: { email } })
     const valid = await verifyPassword(password, user?.passwordHash ?? dummyHash)
-    if (!user || !valid) throw new HttpError(401, 'Incorrect email or password')
+    if (!user || !valid) throw new HttpError(401, 'invalidCredentials')
 
     await deleteExpiredSessions(user.id)
     res.cookie(SESSION_COOKIE, await createSession(user.id), sessionCookieOptions)

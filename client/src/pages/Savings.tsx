@@ -1,17 +1,21 @@
 import type { Goal } from '@expenses/shared'
 import { Minus, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { type ContributionDirection, ContributionDialog } from '@/components/ContributionDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { GoalDialog } from '@/components/GoalDialog'
 import { GoalProgress } from '@/components/GoalProgress'
 import { Button } from '@/components/ui/button'
+import { useErrorText } from '@/lib/errors'
 import { useDeleteGoal, useGoals } from '@/lib/goals'
 
 type Editing = { goal: Goal | null } | null
 type Contributing = { goal: Goal; direction: ContributionDirection } | null
 
 export function Savings() {
+  const { t } = useTranslation()
+  const errorText = useErrorText()
   const goals = useGoals()
   const remove = useDeleteGoal()
   const [editing, setEditing] = useState<Editing>(null)
@@ -26,27 +30,26 @@ export function Savings() {
   return (
     <section>
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-2xl font-semibold">Savings goals</h2>
+        <h2 className="text-2xl font-semibold">{t('savings.title')}</h2>
         <Button onClick={() => setEditing({ goal: null })}>
-          <Plus aria-hidden="true" /> New goal
+          <Plus aria-hidden="true" /> {t('savings.newGoal')}
         </Button>
       </div>
 
       <div className="mt-6">
         {goals.isPending && (
           <p role="status" className="text-sm text-muted-foreground">
-            Loading…
+            {t('common.loading')}
           </p>
         )}
         {goals.isError && (
           <p role="alert" className="text-sm text-destructive">
-            Could not load savings goals. {goals.error.message}
+            {t('savings.loadFailed', { message: errorText(goals.error) })}
           </p>
         )}
         {goals.data?.length === 0 && (
           <p className="rounded-xl border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
-            No savings goals yet. Create one for something you are saving towards, like a trip or
-            an emergency fund.
+            {t('savings.empty')}
           </p>
         )}
 
@@ -59,7 +62,7 @@ export function Savings() {
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`Edit ${goal.name}`}
+                    aria-label={t('savings.editLabel', { name: goal.name })}
                     onClick={() => setEditing({ goal })}
                   >
                     <Pencil aria-hidden="true" />
@@ -67,7 +70,7 @@ export function Savings() {
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`Delete ${goal.name}`}
+                    aria-label={t('savings.deleteLabel', { name: goal.name })}
                     onClick={() => setDeleting(goal)}
                   >
                     <Trash2 aria-hidden="true" />
@@ -79,19 +82,19 @@ export function Savings() {
                 <div className="mt-3 flex gap-2">
                   <Button
                     size="sm"
-                    aria-label={`Add money to ${goal.name}`}
+                    aria-label={t('savings.addMoneyLabel', { name: goal.name })}
                     onClick={() => setContributing({ goal, direction: 'add' })}
                   >
-                    <Plus aria-hidden="true" /> Add money
+                    <Plus aria-hidden="true" /> {t('savings.addMoney')}
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    aria-label={`Take money from ${goal.name}`}
+                    aria-label={t('savings.takeMoneyLabel', { name: goal.name })}
                     disabled={goal.savedAmount === 0}
                     onClick={() => setContributing({ goal, direction: 'withdraw' })}
                   >
-                    <Minus aria-hidden="true" /> Take out
+                    <Minus aria-hidden="true" /> {t('savings.takeOut')}
                   </Button>
                 </div>
               </li>
@@ -113,11 +116,11 @@ export function Savings() {
       />
       <ConfirmDialog
         open={deleting !== null}
-        title={`Delete ${deleting?.name ?? 'goal'}?`}
-        description="The goal and its saved amount are removed. This cannot be undone."
-        confirmLabel="Delete"
+        title={t('savings.deleteTitle', { name: deleting?.name ?? '' })}
+        description={t('savings.deleteDescription')}
+        confirmLabel={t('common.delete')}
         pending={remove.isPending}
-        error={remove.error?.message ?? null}
+        error={errorText(remove.error)}
         onConfirm={() => deleting && remove.mutate(deleting.id, { onSuccess: closeDelete })}
         onClose={closeDelete}
       />

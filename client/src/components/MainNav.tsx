@@ -1,14 +1,15 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation } from 'react-router'
 
 const NAV_LINKS = [
-  { to: '/', label: 'Overview' },
-  { to: '/transactions', label: 'Transactions' },
-  { to: '/budgets', label: 'Budgets' },
-  { to: '/savings', label: 'Savings' },
-  { to: '/reports', label: 'Reports' },
-  { to: '/categories', label: 'Categories' },
-]
+  { to: '/', label: 'nav.overview' },
+  { to: '/transactions', label: 'nav.transactions' },
+  { to: '/budgets', label: 'nav.budgets' },
+  { to: '/savings', label: 'nav.savings' },
+  { to: '/reports', label: 'nav.reports' },
+  { to: '/categories', label: 'nav.categories' },
+] as const
 
 // The focus ring is drawn inside the tab; the scrolling row would clip one
 // drawn outside it.
@@ -21,6 +22,7 @@ const INACTIVE_TAB_CLASSES = 'border-transparent text-muted-foreground hover:tex
 export function MainNav() {
   const navRef = useRef<HTMLElement>(null)
   const { pathname } = useLocation()
+  const { t } = useTranslation()
 
   // Bring the current tab into view when it starts off-screen, for example
   // after opening Categories from a link on a phone. Only the row scrolls,
@@ -45,7 +47,7 @@ export function MainNav() {
   return (
     <nav
       ref={navRef}
-      aria-label="Main"
+      aria-label={t('nav.label')}
       className="mx-auto -mb-px flex max-w-4xl gap-1 overflow-x-auto overflow-y-hidden px-2"
     >
       {/*
@@ -63,7 +65,7 @@ export function MainNav() {
             `${TAB_CLASSES} ${isActive ? ACTIVE_TAB_CLASSES : INACTIVE_TAB_CLASSES}`
           }
         >
-          {label}
+          {t(label)}
         </NavLink>
       ))}
     </nav>

@@ -1,10 +1,12 @@
 import type { LoginInput } from '@expenses/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import type { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useValidationText } from '@/lib/errors'
 
 interface CredentialsFormProps {
   schema: z.ZodType<LoginInput, LoginInput>
@@ -31,10 +33,13 @@ export function CredentialsForm({
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema), defaultValues: { email: '', password: '' } })
 
+  const { t } = useTranslation()
+  const validationText = useValidationText()
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="grid gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t('auth.email')}</Label>
         <Input
           id="email"
           type="email"
@@ -45,13 +50,13 @@ export function CredentialsForm({
         />
         {errors.email && (
           <p id="email-error" className="text-sm text-destructive">
-            {errors.email.message}
+            {validationText(errors.email.message)}
           </p>
         )}
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{t('auth.password')}</Label>
         <Input
           id="password"
           type="password"
@@ -62,7 +67,7 @@ export function CredentialsForm({
         />
         {errors.password ? (
           <p id="password-error" className="text-sm text-destructive">
-            {errors.password.message}
+            {validationText(errors.password.message)}
           </p>
         ) : (
           passwordHint && (

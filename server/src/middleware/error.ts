@@ -1,37 +1,55 @@
-import type { ApiError } from '@expenses/shared'
+import {
+  type ApiError,
+  type ApiErrorCode,
+  MAX_REPORT_MONTHS,
+  apiErrorMessages,
+  fillPlaceholders,
+  isValidationKey,
+  validationMessages,
+} from '@expenses/shared'
 import type { ErrorRequestHandler, RequestHandler } from 'express'
 import { ZodError } from 'zod'
 import { HttpError } from '../errors.ts'
 
+function errorBody(code: ApiErrorCode): ApiError {
+  return { error: { code, message: apiErrorMessages[code] } }
+}
+
 export const notFound: RequestHandler = (_req, res) => {
-  res.status(404).json({ error: { message: 'Not found' } } satisfies ApiError)
+  res.status(404).json(errorBody('notFound'))
 }
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof ZodError) {
-    const issues = err.issues.map((issue) => ({
-      path: issue.path.join('.'),
-      message: issue.message,
-    }))
-    res.status(400).json({ error: { message: 'Invalid request', issues } } satisfies ApiError)
+    // Schema messages are translation keys; send the key as the code and the
+    // English text as the message.
+    const issues = err.issues.map((issue) => {
+      const path = issue.path.join('.')
+      if (!isValidationKey(issue.message)) return { path, message: issue.message }
+      const message = fillPlaceholders(validationMessages[issue.message], {
+        max: MAX_REPORT_MONTHS,
+      })
+      return { path, code: issue.message, message }
+    })
+    const body = errorBody('invalidRequest')
+    res.status(400).json({ error: { ...body.error, issues } } satisfies ApiError)
     return
   }
 
   if (err instanceof HttpError) {
-    res.status(err.status).json({ error: { message: err.message } } satisfies ApiError)
+    res.status(err.status).json(errorBody(err.code))
     return
   }
 
   // Express and its middleware raise client errors of their own, such as a
   // malformed JSON body (400) or a missing static file (404).
   if (isClientError(err)) {
-    const message = err.status === 404 ? 'Not found' : 'Invalid request'
-    res.status(err.status).json({ error: { message } } satisfies ApiError)
+    res.status(err.status).json(errorBody(err.status === 404 ? 'notFound' : 'invalidRequest'))
     return
   }
 
   console.error(err)
-  res.status(500).json({ error: { message: 'Internal server error' } } satisfies ApiError)
+  res.status(500).json(errorBody('internalError'))
 }
 
 function isClientError(err: unknown): err is { status: number } {

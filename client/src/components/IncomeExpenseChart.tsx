@@ -1,5 +1,6 @@
 import type { Report } from '@expenses/shared'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Bar,
   BarChart,
@@ -13,26 +14,29 @@ import {
 import { Button } from '@/components/ui/button'
 import { useCurrency } from '@/lib/auth'
 import { formatMonth } from '@/lib/dates'
-import { formatMoney } from '@/lib/money'
+import { currentLocaleTag } from '@/lib/language'
+import { formatCompact, formatMoney } from '@/lib/money'
 
 const SERIES = [
-  { key: 'income', label: 'Income', color: 'var(--chart-income)' },
-  { key: 'expense', label: 'Expenses', color: 'var(--chart-expense)' },
+  { key: 'income', label: 'common.income', color: 'var(--chart-income)' },
+  { key: 'expense', label: 'common.expenses', color: 'var(--chart-expense)' },
 ] as const
 
 // "Oct", with the year on January and on the first column so it is never lost.
 function axisLabel(month: string, index: number): string {
   const [year, monthNumber] = month.split('-').map(Number) as [number, number]
-  const date = new Date(year, monthNumber - 1, 1)
-  return date.toLocaleDateString(undefined, {
+  const parts = new Intl.DateTimeFormat(currentLocaleTag(), {
     month: 'short',
-    ...((index === 0 || monthNumber === 1) && { year: '2-digit' }),
-  })
+    year: '2-digit',
+  }).formatToParts(new Date(year, monthNumber - 1, 1))
+  if (index === 0 || monthNumber === 1) return parts.map((part) => part.value).join('')
+  // The month on its own, in the same short form as above. Formatting a month
+  // without a year gives a longer form in some languages ("Tháng 7").
+  return parts.find((part) => part.type === 'month')!.value
 }
 
-const compact = new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 })
-
 function ChartTooltip({ active, payload, label, currency }: TooltipContentProps & { currency: string }) {
+  const { t } = useTranslation()
   if (!active || !payload?.length) return null
   const month = String(payload[0]!.payload.month)
 
@@ -46,7 +50,7 @@ function ChartTooltip({ active, payload, label, currency }: TooltipContentProps 
             <span className="font-semibold tabular-nums">
               {formatMoney(Number(payload[0]!.payload[series.key]), currency)}
             </span>
-            <span className="text-muted-foreground">{series.label}</span>
+            <span className="text-muted-foreground">{t(series.label)}</span>
           </li>
         ))}
       </ul>
@@ -57,17 +61,18 @@ function ChartTooltip({ active, payload, label, currency }: TooltipContentProps 
 export function IncomeExpenseChart({ months }: { months: Report['months'] }) {
   const currency = useCurrency()
   const [showTable, setShowTable] = useState(false)
+  const { t } = useTranslation()
   const data = months.map((entry, index) => ({ ...entry, label: axisLabel(entry.month, index) }))
 
   return (
     <figure className="min-w-0 rounded-xl border px-4 py-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <figcaption>
-          <h3 className="font-medium">Income and expenses by month</h3>
-          <p className="text-sm text-muted-foreground">Amounts in {currency}</p>
+          <h3 className="font-medium">{t('chart.title')}</h3>
+          <p className="text-sm text-muted-foreground">{t('chart.amountsIn', { currency })}</p>
         </figcaption>
         <Button variant="outline" size="sm" aria-pressed={showTable} onClick={() => setShowTable(!showTable)}>
-          {showTable ? 'Show chart' : 'Show table'}
+          {showTable ? t('chart.showChart') : t('chart.showTable')}
         </Button>
       </div>
 
@@ -76,10 +81,10 @@ export function IncomeExpenseChart({ months }: { months: Report['months'] }) {
           <table className="w-full text-sm">
             <thead className="text-left text-muted-foreground">
               <tr className="border-b">
-                <th scope="col" className="py-2 pr-4 font-medium">Month</th>
-                <th scope="col" className="py-2 pr-4 text-right font-medium">Income</th>
-                <th scope="col" className="py-2 pr-4 text-right font-medium">Expenses</th>
-                <th scope="col" className="py-2 text-right font-medium">Net</th>
+                <th scope="col" className="py-2 pr-4 font-medium">{t('chart.month')}</th>
+                <th scope="col" className="py-2 pr-4 text-right font-medium">{t('common.income')}</th>
+                <th scope="col" className="py-2 pr-4 text-right font-medium">{t('common.expenses')}</th>
+                <th scope="col" className="py-2 text-right font-medium">{t('common.net')}</th>
               </tr>
             </thead>
             <tbody className="tabular-nums">
@@ -96,11 +101,11 @@ export function IncomeExpenseChart({ months }: { months: Report['months'] }) {
         </div>
       ) : (
         <>
-          <ul className="mt-3 flex gap-4 text-sm" aria-label="Legend">
+          <ul className="mt-3 flex gap-4 text-sm" aria-label={t('chart.legend')}>
             {SERIES.map((series) => (
               <li key={series.key} className="flex items-center gap-1.5">
                 <span aria-hidden="true" className="size-2.5 rounded-sm" style={{ backgroundColor: series.color }} />
-                {series.label}
+                {t(series.label)}
               </li>
             ))}
           </ul>
@@ -116,7 +121,7 @@ export function IncomeExpenseChart({ months }: { months: Report['months'] }) {
                   interval="preserveStartEnd"
                 />
                 <YAxis
-                  tickFormatter={(value: number) => compact.format(value)}
+                  tickFormatter={(value: number) => formatCompact(value, currency)}
                   tickLine={false}
                   axisLine={false}
                   tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
@@ -129,7 +134,7 @@ export function IncomeExpenseChart({ months }: { months: Report['months'] }) {
                   <Bar
                     key={series.key}
                     dataKey={series.key}
-                    name={series.label}
+                    name={t(series.label)}
                     fill={series.color}
                     radius={[4, 4, 0, 0]}
                     maxBarSize={24}

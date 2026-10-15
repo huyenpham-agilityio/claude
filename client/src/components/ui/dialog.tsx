@@ -4,6 +4,8 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
+// Local change: the built-in "Close" text follows the interface language.
+import i18next from "i18next"
 
 function Dialog({
   ...props
@@ -74,7 +76,7 @@ function DialogContent({
             >
               <XIcon
               />
-              <span className="sr-only">Close</span>
+              <span className="sr-only">{i18next.t("common.close")}</span>
             </Button>
           </DialogPrimitive.Close>
         )}
@@ -113,7 +115,7 @@ function DialogFooter({
       {children}
       {showCloseButton && (
         <DialogPrimitive.Close asChild>
-          <Button variant="outline">Close</Button>
+          <Button variant="outline">{i18next.t("common.close")}</Button>
         </DialogPrimitive.Close>
       )}
     </div>

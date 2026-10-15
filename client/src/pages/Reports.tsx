@@ -1,5 +1,6 @@
 import { monthsBetween } from '@expenses/shared'
 import { Download } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { CategorySpending } from '@/components/CategorySpending'
 import { IncomeExpenseChart } from '@/components/IncomeExpenseChart'
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { useCurrency } from '@/lib/auth'
 import { formatMonth } from '@/lib/dates'
+import { useErrorText } from '@/lib/errors'
 import { formatMoney } from '@/lib/money'
 import {
   RANGE_PRESETS,
@@ -21,6 +23,8 @@ const DEFAULT_PRESET: RangePreset = 'last-6'
 
 export function Reports() {
   const currency = useCurrency()
+  const { t } = useTranslation()
+  const errorText = useErrorText()
   const [params, setParams] = useSearchParams()
   const requested = params.get('range')
   const preset = isRangePreset(requested) ? requested : DEFAULT_PRESET
@@ -34,44 +38,44 @@ export function Reports() {
   const money = (value: number | undefined) => (value === undefined ? '…' : formatMoney(value, currency))
 
   const tiles = [
-    { label: 'Income', value: money(income) },
-    { label: 'Expenses', value: money(expense) },
-    { label: 'Net', value: money(income !== undefined && expense !== undefined ? income - expense : undefined) },
+    { label: t('common.income'), value: money(income) },
+    { label: t('common.expenses'), value: money(expense) },
+    { label: t('common.net'), value: money(income !== undefined && expense !== undefined ? income - expense : undefined) },
     {
-      label: 'Average monthly spending',
+      label: t('reports.averageMonthlySpending'),
       value: money(expense === undefined ? undefined : Math.round(expense / monthCount)),
     },
   ]
 
   return (
     <section>
-      <h2 className="text-2xl font-semibold">Reports</h2>
+      <h2 className="text-2xl font-semibold">{t('reports.title')}</h2>
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
         <NativeSelect
-          aria-label="Period"
+          aria-label={t('reports.period')}
           value={preset}
           onChange={(event) => setParams({ range: event.target.value })}
         >
           {Object.entries(RANGE_PRESETS).map(([value, label]) => (
             <NativeSelectOption key={value} value={value}>
-              {label}
+              {t(label)}
             </NativeSelectOption>
           ))}
         </NativeSelect>
         <p className="text-sm text-muted-foreground">
-          {formatMonth(range.from)} – {formatMonth(range.to)}
+          {t('reports.range', { from: formatMonth(range.from), to: formatMonth(range.to) })}
         </p>
         <Button asChild variant="outline" className="sm:ml-auto">
           <a href={csvExportUrl(range)} download>
-            <Download aria-hidden="true" /> Export CSV
+            <Download aria-hidden="true" /> {t('reports.exportCsv')}
           </a>
         </Button>
       </div>
 
       {report.isError && (
         <p role="alert" className="mt-4 text-sm text-destructive">
-          Could not load the report. {report.error.message}
+          {t('reports.loadFailed', { message: errorText(report.error) })}
         </p>
       )}
 
@@ -88,7 +92,7 @@ export function Reports() {
 
         {report.isPending && (
           <p role="status" className="mt-6 text-sm text-muted-foreground">
-            Loading…
+            {t('common.loading')}
           </p>
         )}
 

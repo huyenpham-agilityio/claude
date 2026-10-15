@@ -1,5 +1,6 @@
 import { type Budget, budgetStatus, monthSchema } from '@expenses/shared'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 import { CategoryDot } from '@/components/CategoryDot'
 import { GoalProgress } from '@/components/GoalProgress'
@@ -8,6 +9,7 @@ import { ProgressBar } from '@/components/ProgressBar'
 import { useCurrency } from '@/lib/auth'
 import { budgetTone, useBudgets } from '@/lib/budgets'
 import { currentMonth, formatDay, formatMonth, shiftMonth } from '@/lib/dates'
+import { useErrorText } from '@/lib/errors'
 import { useGoals } from '@/lib/goals'
 import { formatMoney } from '@/lib/money'
 import { useTransactions } from '@/lib/transactions'
@@ -51,6 +53,8 @@ function needingAttention(budgets: Budget[]) {
 
 export function Overview() {
   const currency = useCurrency()
+  const { t } = useTranslation()
+  const errorText = useErrorText()
   const [params, setParams] = useSearchParams()
   const parsedMonth = monthSchema.safeParse(params.get('month'))
   const month = parsedMonth.success ? parsedMonth.data : currentMonth()
@@ -68,16 +72,18 @@ export function Overview() {
     totals && totals.income > 0 ? Math.round(((totals.income - totals.expense) / totals.income) * 100) : null
   const money = (value: number | undefined) => (value === undefined ? '…' : formatMoney(value, currency))
   const lastMonth = (value: number | undefined) =>
-    value === undefined ? undefined : `${formatMonth(previousMonth)}: ${formatMoney(value, currency)}`
+    value === undefined
+      ? undefined
+      : t('overview.lastMonth', { month: formatMonth(previousMonth), amount: formatMoney(value, currency) })
 
   const tiles = [
-    { label: 'Income', value: money(totals?.income), note: lastMonth(previousTotals?.income) },
-    { label: 'Expenses', value: money(totals?.expense), note: lastMonth(previousTotals?.expense) },
-    { label: 'Net', value: money(net), note: 'Income minus expenses' },
+    { label: t('common.income'), value: money(totals?.income), note: lastMonth(previousTotals?.income) },
+    { label: t('common.expenses'), value: money(totals?.expense), note: lastMonth(previousTotals?.expense) },
+    { label: t('common.net'), value: money(net), note: t('overview.netNote') },
     {
-      label: 'Savings rate',
+      label: t('overview.savingsRate'),
       value: !totals ? '…' : savingsRate === null ? '–' : `${savingsRate}%`,
-      note: savingsRate === null && totals ? 'No income recorded' : 'Share of income kept',
+      note: savingsRate === null && totals ? t('overview.noIncome') : t('overview.savingsRateNote'),
     },
   ]
 
@@ -86,7 +92,7 @@ export function Overview() {
 
   return (
     <section>
-      <h2 className="text-2xl font-semibold">Overview</h2>
+      <h2 className="text-2xl font-semibold">{t('overview.title')}</h2>
 
       <div className="mt-6">
         <MonthSwitcher month={month} onChange={(next) => setParams({ month: next })} />
@@ -94,7 +100,7 @@ export function Overview() {
 
       {current.isError && (
         <p role="alert" className="mt-4 text-sm text-destructive">
-          Could not load this month. {current.error.message}
+          {t('overview.loadFailed', { message: errorText(current.error) })}
         </p>
       )}
 
@@ -109,14 +115,14 @@ export function Overview() {
       </dl>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <Panel title="Budgets" link={{ to: `/budgets?month=${month}`, label: 'All budgets' }}>
-          {budgets.isPending && <Muted>Loading…</Muted>}
-          {budgets.data?.budgets.length === 0 && <Muted>No budgets set for this month.</Muted>}
+        <Panel title={t('overview.budgets')} link={{ to: `/budgets?month=${month}`, label: t('overview.allBudgets') }}>
+          {budgets.isPending && <Muted>{t('common.loading')}</Muted>}
+          {budgets.data?.budgets.length === 0 && <Muted>{t('overview.noBudgets')}</Muted>}
           {budgets.data && budgets.data.budgets.length > 0 && attention.length === 0 && (
             <Muted>
               {budgets.data.budgets.length === 1
-                ? 'Your budget is on track.'
-                : `All ${budgets.data.budgets.length} budgets are on track.`}
+                ? t('overview.oneBudgetOnTrack')
+                : t('overview.allBudgetsOnTrack', { count: budgets.data.budgets.length })}
             </Muted>
           )}
           {attention.length > 0 && (
@@ -130,14 +136,16 @@ export function Overview() {
                       <span className="min-w-0 flex-1 truncate font-medium">{budget.category.name}</span>
                       <span className={over ? 'text-destructive' : 'text-warning-text'}>
                         {over
-                          ? `Over by ${formatMoney(budget.spent - budget.limitAmount, currency)}`
+                          ? t('common.overBy', { amount: formatMoney(budget.spent - budget.limitAmount, currency) })
                           : budget.spent === budget.limitAmount
-                            ? 'Limit reached'
-                            : `${Math.round((budget.spent / budget.limitAmount) * 100)}% used`}
+                            ? t('common.limitReached')
+                            : t('common.percentUsed', {
+                                percent: Math.round((budget.spent / budget.limitAmount) * 100),
+                              })}
                       </span>
                     </div>
                     <ProgressBar
-                      label={`${budget.category.name} budget`}
+                      label={t('budgets.budgetLabel', { name: budget.category.name })}
                       value={budget.spent}
                       max={budget.limitAmount}
                       tone={budgetTone(budget.spent, budget.limitAmount)}
@@ -149,9 +157,12 @@ export function Overview() {
           )}
         </Panel>
 
-        <Panel title="Recent transactions" link={{ to: `/transactions?month=${month}`, label: 'See all' }}>
-          {current.isPending && <Muted>Loading…</Muted>}
-          {current.data && recent.length === 0 && <Muted>Nothing recorded this month.</Muted>}
+        <Panel
+          title={t('overview.recentTransactions')}
+          link={{ to: `/transactions?month=${month}`, label: t('overview.seeAll') }}
+        >
+          {current.isPending && <Muted>{t('common.loading')}</Muted>}
+          {current.data && recent.length === 0 && <Muted>{t('overview.nothingRecorded')}</Muted>}
           {recent.length > 0 && (
             <ul className="grid gap-2">
               {recent.map((transaction) => (
@@ -179,9 +190,9 @@ export function Overview() {
         </Panel>
 
         <div className="md:col-span-2">
-          <Panel title="Savings goals" link={{ to: '/savings', label: 'Manage' }}>
-            {goals.isPending && <Muted>Loading…</Muted>}
-            {goals.data?.length === 0 && <Muted>No savings goals yet.</Muted>}
+          <Panel title={t('overview.savingsGoals')} link={{ to: '/savings', label: t('overview.manage') }}>
+            {goals.isPending && <Muted>{t('common.loading')}</Muted>}
+            {goals.data?.length === 0 && <Muted>{t('overview.noGoals')}</Muted>}
             {goals.data && goals.data.length > 0 && (
               <ul className="grid gap-4 md:grid-cols-2">
                 {goals.data.slice(0, GOALS_SHOWN).map((goal) => (

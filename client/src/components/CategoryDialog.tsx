@@ -6,6 +6,7 @@ import {
 } from '@expenses/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { FormField } from '@/components/FormField'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,8 +20,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { useCreateCategory, useUpdateCategory } from '@/lib/categories'
+import { useErrorText } from '@/lib/errors'
 
-const TYPE_LABELS = { expense: 'Expense', income: 'Income' } as const
+const TYPE_LABELS = { expense: 'types.expense', income: 'types.income' } as const
 
 interface CategoryDialogProps {
   open: boolean
@@ -30,13 +32,14 @@ interface CategoryDialogProps {
 }
 
 export function CategoryDialog({ open, ...formProps }: CategoryDialogProps) {
+  const { t } = useTranslation()
   return (
     <Dialog open={open} onOpenChange={(next) => !next && formProps.onClose()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{formProps.category ? 'Edit category' : 'Add category'}</DialogTitle>
+          <DialogTitle>{formProps.category ? t('categories.edit') : t('categories.add')}</DialogTitle>
           <DialogDescription className="sr-only">
-            Choose a name and colour for the category.
+            {t('categories.dialogDescription')}
           </DialogDescription>
         </DialogHeader>
         {/* Mounted only while open, so each opening starts from fresh values. */}
@@ -50,6 +53,8 @@ function CategoryForm({ category, onClose }: Omit<CategoryDialogProps, 'open'>) 
   const create = useCreateCategory()
   const update = useUpdateCategory()
   const save = category ? update : create
+  const { t } = useTranslation()
+  const errorText = useErrorText()
 
   const {
     register,
@@ -78,7 +83,7 @@ function CategoryForm({ category, onClose }: Omit<CategoryDialogProps, 'open'>) 
           : create.mutate({ name, type, color }, { onSuccess: onClose }),
       )}
     >
-      <FormField id="name" label="Name" error={errors.name?.message}>
+      <FormField id="name" label={t('common.name')} error={errors.name?.message}>
         <Input
           id="name"
           autoComplete="off"
@@ -89,26 +94,26 @@ function CategoryForm({ category, onClose }: Omit<CategoryDialogProps, 'open'>) 
         />
       </FormField>
 
-      <FormField id="type" label="Type">
+      <FormField id="type" label={t('common.type')}>
         {/* The type is fixed after creation so existing transactions stay consistent. */}
         <NativeSelect id="type" className="w-full" disabled={!!category} {...register('type')}>
           {transactionTypeSchema.options.map((option) => (
             <NativeSelectOption key={option} value={option}>
-              {TYPE_LABELS[option]}
+              {t(TYPE_LABELS[option])}
             </NativeSelectOption>
           ))}
         </NativeSelect>
       </FormField>
 
       <fieldset className="grid gap-2">
-        <legend className="mb-2 text-sm font-medium">Colour</legend>
+        <legend className="mb-2 text-sm font-medium">{t('categories.colour')}</legend>
         <div className="flex flex-wrap gap-2">
           {colors.map((color, index) => (
             <label key={color} className="cursor-pointer">
               <input
                 type="radio"
                 value={color}
-                aria-label={`Colour ${index + 1}`}
+                aria-label={t('categories.colourOption', { number: index + 1 })}
                 className="peer sr-only"
                 {...register('color')}
               />
@@ -123,16 +128,16 @@ function CategoryForm({ category, onClose }: Omit<CategoryDialogProps, 'open'>) 
 
       {save.error && (
         <p role="alert" className="text-sm text-destructive">
-          {save.error.message}
+          {errorText(save.error)}
         </p>
       )}
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={save.isPending}>
-          {category ? 'Save changes' : 'Add category'}
+          {category ? t('common.saveChanges') : t('categories.add')}
         </Button>
       </DialogFooter>
     </form>

@@ -7,7 +7,10 @@ beforeEach(resetDatabase)
 
 describe('categories', () => {
   it('requires a session', async () => {
-    expect((await request(app).get('/api/categories')).status).toBe(401)
+    const res = await request(app).get('/api/categories')
+
+    expect(res.status).toBe(401)
+    expect(res.body.error).toEqual({ code: 'notSignedIn', message: 'Not signed in' })
   })
 
   it('gives a new account the default categories', async () => {
@@ -67,6 +70,7 @@ describe('categories', () => {
     const res = await agent.delete(`/api/categories/${groceries.id}`)
 
     expect(res.status).toBe(409)
+    expect(res.body.error.code).toBe('categoryInUse')
     expect((await categoryNamed(agent, 'Groceries')).transactionCount).toBe(1)
   })
 

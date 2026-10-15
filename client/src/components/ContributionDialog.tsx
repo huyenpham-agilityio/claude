@@ -1,6 +1,7 @@
-import { type Goal, amountSchema } from '@expenses/shared'
+import { type Goal, amountSchema, msg } from '@expenses/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { FormField } from '@/components/FormField'
 import { Button } from '@/components/ui/button'
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { useCurrency } from '@/lib/auth'
+import { useErrorText } from '@/lib/errors'
 import { useContribute } from '@/lib/goals'
 import { formatMoney, parseAmountInput } from '@/lib/money'
 
@@ -28,16 +30,18 @@ interface ContributionDialogProps {
 
 export function ContributionDialog({ open, goal, direction, onClose }: ContributionDialogProps) {
   const currency = useCurrency()
+  const { t } = useTranslation()
+  const name = goal?.name ?? ''
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {direction === 'add' ? 'Add money to' : 'Take money from'} {goal?.name}
+            {direction === 'add' ? t('savings.addMoneyTo', { name }) : t('savings.takeMoneyFrom', { name })}
           </DialogTitle>
           <DialogDescription>
-            {goal && `${formatMoney(goal.savedAmount, currency)} saved so far.`}
+            {goal && t('savings.savedSoFar', { amount: formatMoney(goal.savedAmount, currency) })}
           </DialogDescription>
         </DialogHeader>
         {/* Mounted only while open, so each opening starts empty. */}
@@ -58,6 +62,9 @@ function ContributionForm({
 }) {
   const currency = useCurrency()
   const contribute = useContribute()
+  const { t } = useTranslation()
+  const errorText = useErrorText()
+  const saved = formatMoney(goal.savedAmount, currency)
 
   const schema = z.object({
     amount: z
@@ -66,7 +73,7 @@ function ContributionForm({
       .pipe(amountSchema)
       .refine(
         (amount) => direction === 'add' || amount <= goal.savedAmount,
-        `Only ${formatMoney(goal.savedAmount, currency)} is saved`,
+        msg('savedExceeded'),
       ),
   })
 
@@ -90,7 +97,12 @@ function ContributionForm({
         ),
       )}
     >
-      <FormField id="amount" label={`Amount (${currency})`} error={errors.amount?.message}>
+      <FormField
+        id="amount"
+        label={t('common.amountIn', { currency })}
+        error={errors.amount?.message}
+        errorValues={{ amount: saved }}
+      >
         <Input
           id="amount"
           inputMode="decimal"
@@ -104,16 +116,16 @@ function ContributionForm({
 
       {contribute.error && (
         <p role="alert" className="text-sm text-destructive">
-          {contribute.error.message}
+          {errorText(contribute.error)}
         </p>
       )}
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={contribute.isPending}>
-          {direction === 'add' ? 'Add money' : 'Take out'}
+          {direction === 'add' ? t('savings.addMoney') : t('savings.takeOut')}
         </Button>
       </DialogFooter>
     </form>
