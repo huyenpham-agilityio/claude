@@ -7,6 +7,7 @@ import { CategoryDot } from '@/components/CategoryDot'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { MonthSwitcher } from '@/components/MonthSwitcher'
 import { TransactionDialog } from '@/components/TransactionDialog'
+import { IconButton } from '@/components/IconButton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -209,9 +210,10 @@ export function Transactions() {
                     >
                       {signed(transaction)}
                     </p>
-                    <Button
+                    <IconButton
                       variant="ghost"
                       size="icon-sm"
+                      tooltip={t('tooltips.editTransaction')}
                       aria-label={t('transactions.editLabel', {
                         category: transaction.category.name,
                         amount: signed(transaction),
@@ -219,10 +221,11 @@ export function Transactions() {
                       onClick={() => setEditing({ transaction })}
                     >
                       <Pencil aria-hidden="true" />
-                    </Button>
-                    <Button
+                    </IconButton>
+                    <IconButton
                       variant="ghost"
                       size="icon-sm"
+                      tooltip={t('tooltips.deleteTransaction')}
                       aria-label={t('transactions.deleteLabel', {
                         category: transaction.category.name,
                         amount: signed(transaction),
@@ -230,7 +233,7 @@ export function Transactions() {
                       onClick={() => setDeleting(transaction)}
                     >
                       <Trash2 aria-hidden="true" />
-                    </Button>
+                    </IconButton>
                   </li>
                 ))}
               </ul>

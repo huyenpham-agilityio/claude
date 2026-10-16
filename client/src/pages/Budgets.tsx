@@ -8,6 +8,7 @@ import { CategoryDot } from '@/components/CategoryDot'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { MonthSwitcher } from '@/components/MonthSwitcher'
 import { ProgressBar } from '@/components/ProgressBar'
+import { IconButton } from '@/components/IconButton'
 import { Button } from '@/components/ui/button'
 import { useCurrency } from '@/lib/auth'
 import { budgetTone, useBudgets, useCopyBudgets, useDeleteBudget } from '@/lib/budgets'
@@ -159,22 +160,24 @@ export function Budgets() {
                   <div className="flex items-center gap-3">
                     <CategoryDot color={budget.category.color} />
                     <p className="min-w-0 flex-1 truncate font-medium">{budget.category.name}</p>
-                    <Button
+                    <IconButton
                       variant="ghost"
                       size="icon-sm"
+                      tooltip={t('tooltips.editBudget')}
                       aria-label={t('budgets.editLabel', { name: budget.category.name })}
                       onClick={() => setEditing({ budget })}
                     >
                       <Pencil aria-hidden="true" />
-                    </Button>
-                    <Button
+                    </IconButton>
+                    <IconButton
                       variant="ghost"
                       size="icon-sm"
+                      tooltip={t('tooltips.deleteBudget')}
                       aria-label={t('budgets.deleteLabel', { name: budget.category.name })}
                       onClick={() => setDeleting(budget)}
                     >
                       <Trash2 aria-hidden="true" />
-                    </Button>
+                    </IconButton>
                   </div>
                   <div className="mt-2">
                     <ProgressBar

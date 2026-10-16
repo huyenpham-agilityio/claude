@@ -6,6 +6,7 @@ import { type ContributionDirection, ContributionDialog } from '@/components/Con
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { GoalDialog } from '@/components/GoalDialog'
 import { GoalProgress } from '@/components/GoalProgress'
+import { IconButton } from '@/components/IconButton'
 import { Button } from '@/components/ui/button'
 import { useErrorText } from '@/lib/errors'
 import { useDeleteGoal, useGoals } from '@/lib/goals'
@@ -59,22 +60,24 @@ export function Savings() {
               <li key={goal.id} className="rounded-xl border px-4 py-3">
                 <div className="flex items-center gap-2">
                   <h3 className="min-w-0 flex-1 truncate font-medium">{goal.name}</h3>
-                  <Button
+                  <IconButton
                     variant="ghost"
                     size="icon-sm"
+                    tooltip={t('tooltips.editGoal')}
                     aria-label={t('savings.editLabel', { name: goal.name })}
                     onClick={() => setEditing({ goal })}
                   >
                     <Pencil aria-hidden="true" />
-                  </Button>
-                  <Button
+                  </IconButton>
+                  <IconButton
                     variant="ghost"
                     size="icon-sm"
+                    tooltip={t('tooltips.deleteGoal')}
                     aria-label={t('savings.deleteLabel', { name: goal.name })}
                     onClick={() => setDeleting(goal)}
                   >
                     <Trash2 aria-hidden="true" />
-                  </Button>
+                  </IconButton>
                 </div>
                 <div className="mt-2">
                   <GoalProgress goal={goal} />

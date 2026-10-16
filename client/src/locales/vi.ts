@@ -40,6 +40,16 @@ export const vi: Messages<typeof en> = {
     reports: 'Báo cáo',
     categories: 'Danh mục',
   },
+  tooltips: {
+    editTransaction: 'Sửa giao dịch',
+    deleteTransaction: 'Xóa giao dịch',
+    editBudget: 'Sửa ngân sách',
+    deleteBudget: 'Xóa ngân sách',
+    editGoal: 'Sửa mục tiêu',
+    deleteGoal: 'Xóa mục tiêu',
+    editCategory: 'Sửa danh mục',
+    deleteCategory: 'Xóa danh mục',
+  },
   theme: {
     switchToDark: 'Chuyển sang giao diện tối',
     switchToLight: 'Chuyển sang giao diện sáng',

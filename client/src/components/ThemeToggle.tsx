@@ -1,6 +1,6 @@
 import { Moon, Sun } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
+import { IconButton } from '@/components/IconButton'
 import { useTheme } from '@/lib/theme'
 
 // Switches between light and dark. Until the user picks one, the page follows
@@ -13,14 +13,14 @@ export function ThemeToggle() {
   const Icon = next === 'dark' ? Moon : Sun
 
   return (
-    <Button
+    <IconButton
       variant="ghost"
       size="icon-sm"
       aria-label={description}
-      title={description}
+      tooltip={description}
       onClick={() => setPreference(next)}
     >
       <Icon aria-hidden="true" />
-    </Button>
+    </IconButton>
   )
 }

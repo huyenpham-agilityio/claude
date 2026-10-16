@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { CategoryDialog } from '@/components/CategoryDialog'
 import { CategoryDot } from '@/components/CategoryDot'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { IconButton } from '@/components/IconButton'
 import { Button } from '@/components/ui/button'
 import { useCategories, useDeleteCategory } from '@/lib/categories'
 import { useErrorText } from '@/lib/errors'
@@ -66,28 +67,25 @@ export function Categories() {
                       <span className="text-sm text-muted-foreground tabular-nums">
                         {t('categories.transactionCount', { count: category.transactionCount })}
                       </span>
-                      <Button
+                      <IconButton
                         variant="ghost"
                         size="icon-sm"
+                        tooltip={t('tooltips.editCategory')}
                         aria-label={t('categories.editLabel', { name: category.name })}
                         onClick={() => setEditing({ category })}
                       >
                         <Pencil aria-hidden="true" />
-                      </Button>
-                      <Button
+                      </IconButton>
+                      <IconButton
                         variant="ghost"
                         size="icon-sm"
+                        tooltip={category.transactionCount > 0 ? t('categories.inUse') : t('tooltips.deleteCategory')}
                         aria-label={t('categories.deleteLabel', { name: category.name })}
-                        title={
-                          category.transactionCount > 0
-                            ? t('categories.inUse')
-                            : undefined
-                        }
                         disabled={category.transactionCount > 0}
                         onClick={() => setDeleting(category)}
                       >
                         <Trash2 aria-hidden="true" />
-                      </Button>
+                      </IconButton>
                     </li>
                   ))}
                 </ul>
