@@ -1,12 +1,13 @@
 import type { Report } from '@expenses/shared'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { currentMonth, shiftMonth } from '../lib/dates.ts'
 import { presetRange } from '../lib/reports.ts'
 import { signedInHandlers } from './fixtures.ts'
 import { mockApi, renderApp } from './renderApp.tsx'
 
+beforeEach(() => localStorage.clear())
 afterEach(() => vi.unstubAllGlobals())
 
 const report: Report = {
@@ -116,5 +117,54 @@ describe('reports page', () => {
     renderApp('/reports')
 
     expect(await screen.findByText('No spending in this period.')).toBeInTheDocument()
+  })
+
+  it('reopens on the chosen period after visiting another section', async () => {
+    const summary = renderReports()
+    await screen.findByText('Spending by category')
+    await userEvent.selectOptions(screen.getByLabelText('Period'), 'Last 12 months')
+
+    await userEvent.click(screen.getByRole('link', { name: 'Overview' }))
+    await userEvent.click(await screen.findByRole('link', { name: 'Reports' }))
+
+    await waitFor(() => expect(screen.getByLabelText('Period')).toHaveValue('last-12'))
+    expect(summary.mock.lastCall![1].get('from')).toBe(shiftMonth(currentMonth(), -11))
+  })
+
+  it('replaces the saved period when another is chosen', async () => {
+    localStorage.setItem('reportsRange', 'last-12')
+    renderReports()
+    await screen.findByText('Spending by category')
+
+    await userEvent.selectOptions(screen.getByLabelText('Period'), 'Last 3 months')
+
+    expect(localStorage.getItem('reportsRange')).toBe('last-3')
+  })
+
+  it('shows a linked period without overwriting the saved one', async () => {
+    localStorage.setItem('reportsRange', 'last-12')
+    const summary = renderReports('/reports?range=last-3')
+
+    await screen.findByText('Spending by category')
+    expect(screen.getByLabelText('Period')).toHaveValue('last-3')
+    expect(summary.mock.lastCall![1].get('from')).toBe(shiftMonth(currentMonth(), -2))
+    expect(localStorage.getItem('reportsRange')).toBe('last-12')
+  })
+
+  it('uses the saved period when the link has an unknown one', async () => {
+    localStorage.setItem('reportsRange', 'last-12')
+    renderReports('/reports?range=nonsense')
+
+    await screen.findByText('Spending by category')
+    expect(screen.getByLabelText('Period')).toHaveValue('last-12')
+  })
+
+  it('ignores a saved value it does not know', async () => {
+    localStorage.setItem('reportsRange', 'forever')
+    const summary = renderReports()
+
+    await screen.findByText('Spending by category')
+    expect(screen.getByLabelText('Period')).toHaveValue('last-6')
+    expect(summary.mock.lastCall![1].get('from')).toBe(shiftMonth(currentMonth(), -5))
   })
 })
