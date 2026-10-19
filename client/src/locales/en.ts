@@ -41,6 +41,16 @@ export const en = {
     reports: 'Reports',
     categories: 'Categories',
   },
+  tooltips: {
+    editTransaction: 'Edit transaction',
+    deleteTransaction: 'Delete transaction',
+    editBudget: 'Edit budget',
+    deleteBudget: 'Delete budget',
+    editGoal: 'Edit goal',
+    deleteGoal: 'Delete goal',
+    editCategory: 'Edit category',
+    deleteCategory: 'Delete category',
+  },
   theme: {
     switchToDark: 'Switch to dark theme',
     switchToLight: 'Switch to light theme',
