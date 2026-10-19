@@ -11,15 +11,15 @@ import { formatMonth } from '@/lib/dates'
 import { useErrorText } from '@/lib/errors'
 import { formatMoney } from '@/lib/money'
 import {
+  DEFAULT_PRESET,
   RANGE_PRESETS,
-  type RangePreset,
   csvExportUrl,
   isRangePreset,
   presetRange,
+  readSavedPreset,
+  savePreset,
   useReport,
 } from '@/lib/reports'
-
-const DEFAULT_PRESET: RangePreset = 'last-6'
 
 export function Reports() {
   const currency = useCurrency()
@@ -27,7 +27,7 @@ export function Reports() {
   const errorText = useErrorText()
   const [params, setParams] = useSearchParams()
   const requested = params.get('range')
-  const preset = isRangePreset(requested) ? requested : DEFAULT_PRESET
+  const preset = isRangePreset(requested) ? requested : (readSavedPreset() ?? DEFAULT_PRESET)
   const range = presetRange(preset)
   const report = useReport(range)
 
@@ -55,7 +55,13 @@ export function Reports() {
         <NativeSelect
           aria-label={t('reports.period')}
           value={preset}
-          onChange={(event) => setParams({ range: event.target.value })}
+          onChange={(event) => {
+            const next = event.target.value
+            if (!isRangePreset(next)) return
+            // Only the picker saves, so opening a shared link leaves the saved choice alone.
+            savePreset(next)
+            setParams({ range: next })
+          }}
         >
           {Object.entries(RANGE_PRESETS).map(([value, label]) => (
             <NativeSelectOption key={value} value={value}>

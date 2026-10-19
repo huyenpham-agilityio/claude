@@ -17,6 +17,29 @@ export function isRangePreset(value: unknown): value is RangePreset {
   return typeof value === 'string' && value in RANGE_PRESETS
 }
 
+export const DEFAULT_PRESET: RangePreset = 'last-6'
+
+const STORAGE_KEY = 'reportsRange'
+
+// The period the person last chose, or null if none (or storage is blocked).
+export function readSavedPreset(): RangePreset | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (isRangePreset(saved)) return saved
+  } catch {
+    // Storage can be unavailable (private mode, blocked site data).
+  }
+  return null
+}
+
+export function savePreset(preset: RangePreset) {
+  try {
+    localStorage.setItem(STORAGE_KEY, preset)
+  } catch {
+    // Not remembered, but still applied for this visit.
+  }
+}
+
 // Every preset ends with the current month.
 export function presetRange(preset: RangePreset, month = currentMonth()): MonthRange {
   switch (preset) {
