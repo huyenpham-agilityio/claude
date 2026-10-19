@@ -162,6 +162,7 @@ export const en = {
     savedSoFar: '{{amount}} saved so far.',
     progressLabel: '{{name}} progress',
     reached: 'Goal reached',
+    amountLeft: '{{amount}} left',
     noTargetDate: 'No target date',
     overdue: 'Target date {{date}} has passed',
     perMonth: '{{amount}} a month to reach it by {{date}}',

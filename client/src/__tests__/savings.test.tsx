@@ -2,6 +2,7 @@ import type { Goal } from '@expenses/shared'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { setLanguage } from '@/lib/language'
 import { goals, signedInHandlers } from './fixtures.ts'
 import { mockApi, renderApp } from './renderApp.tsx'
 
@@ -26,6 +27,56 @@ describe('savings page', () => {
     expect(tripCard).toHaveTextContent('₫15,000,000 of ₫60,000,000')
     expect(within(tripCard).getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25')
     expect(within(await card('Laptop')).getByText('Goal reached')).toBeInTheDocument()
+  })
+
+  it('shows how much is left to save, and none once the goal is reached', async () => {
+    mockApi(
+      withGoals([
+        trip,
+        { ...trip, id: 'g-new', name: 'Bike', savedAmount: 0 },
+        { ...trip, id: 'g-done', name: 'Laptop', savedAmount: 60_000_000 },
+        { ...trip, id: 'g-over', name: 'Phone', savedAmount: 70_000_000 },
+      ]),
+    )
+    renderApp('/savings')
+
+    expect(within(await card('Trip to Japan')).getAllByText('₫45,000,000 left')).toHaveLength(1)
+    expect(within(await card('Bike')).getByText('₫60,000,000 left')).toBeInTheDocument()
+    for (const name of ['Laptop', 'Phone']) {
+      const done = await card(name)
+      expect(within(done).getByText('Goal reached')).toBeInTheDocument()
+      expect(done).not.toHaveTextContent('left')
+    }
+  })
+
+  it('shows the amount left in Vietnamese number format', async () => {
+    setLanguage('vi')
+    mockApi(withGoals([trip]))
+    renderApp('/savings')
+
+    // vi-VN puts the symbol after the number, with a non-breaking space.
+    expect(await screen.findByText(/^Còn 45\.000\.000\s₫$/)).toBeInTheDocument()
+  })
+
+  it('updates the amount left after adding money', async () => {
+    let saved = trip.savedAmount
+    mockApi({
+      ...signedInHandlers(),
+      'GET /api/goals': () => Response.json({ goals: [{ ...trip, savedAmount: saved }] }),
+      'POST /api/goals/g-trip/contributions': () => {
+        saved += 5_000_000
+        return Response.json({ goal: { ...trip, savedAmount: saved } })
+      },
+    })
+    renderApp('/savings')
+
+    expect(await screen.findByText('₫45,000,000 left')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Add money to Trip to Japan' }))
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.type(within(dialog).getByLabelText('Amount (VND)'), '5000000')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add money' }))
+
+    expect(await screen.findByText('₫40,000,000 left')).toBeInTheDocument()
   })
 
   it('explains an empty list', async () => {

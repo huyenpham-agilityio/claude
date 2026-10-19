@@ -66,3 +66,8 @@ export function goalPace(goal: Goal, today: string): GoalPace {
   const months = (targetYear - year) * 12 + (targetMonth - month) + 1
   return { kind: 'monthly', amount: Math.ceil(remaining / months), months }
 }
+
+// What is still missing to reach the goal; 0 once it is reached or passed.
+export function goalAmountLeft(goal: Goal): number {
+  return Math.max(0, goal.targetAmount - goal.savedAmount)
+}

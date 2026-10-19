@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ProgressBar } from '@/components/ProgressBar'
 import { useCurrency } from '@/lib/auth'
 import { formatLongDate, today } from '@/lib/dates'
-import { goalPace } from '@/lib/goals'
+import { goalAmountLeft, goalPace } from '@/lib/goals'
 import { formatMoney } from '@/lib/money'
 
 // A goal's bar, saved amount, and what it will take to reach it in time.
@@ -12,6 +12,7 @@ export function GoalProgress({ goal }: { goal: Goal }) {
   const { t } = useTranslation()
   const pace = goalPace(goal, today())
   const reached = pace.kind === 'reached'
+  const amountLeft = goalAmountLeft(goal)
 
   return (
     <div className="grid gap-2">
@@ -33,12 +34,19 @@ export function GoalProgress({ goal }: { goal: Goal }) {
               date: formatLongDate(goal.targetDate!),
             })}
         </p>
-        <p className="whitespace-nowrap tabular-nums">
-          {formatMoney(goal.savedAmount, currency)}{' '}
-          <span className="text-muted-foreground">
-            {t('common.ofAmount', { amount: formatMoney(goal.targetAmount, currency) })}
-          </span>
-        </p>
+        <div className="whitespace-nowrap tabular-nums sm:text-right">
+          <p>
+            {formatMoney(goal.savedAmount, currency)}{' '}
+            <span className="text-muted-foreground">
+              {t('common.ofAmount', { amount: formatMoney(goal.targetAmount, currency) })}
+            </span>
+          </p>
+          {!reached && (
+            <p className="text-muted-foreground">
+              {t('savings.amountLeft', { amount: formatMoney(amountLeft, currency) })}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 import type { Goal } from '@expenses/shared'
 import { describe, expect, it } from 'vitest'
-import { goalPace } from '../goals.ts'
+import { goalAmountLeft, goalPace } from '../goals.ts'
 
 const goal = (overrides: Partial<Goal>): Goal => ({
   id: 'g',
@@ -50,5 +50,20 @@ describe('goalPace', () => {
 
   it('has no pace without a target date', () => {
     expect(goalPace(goal({ targetDate: null }), '2026-10-14')).toEqual({ kind: 'no-date' })
+  })
+})
+
+describe('goalAmountLeft', () => {
+  it('is the target minus what is saved', () => {
+    expect(goalAmountLeft(goal({ savedAmount: 300 }))).toBe(900)
+  })
+
+  it('is the whole target when nothing is saved', () => {
+    expect(goalAmountLeft(goal({ savedAmount: 0 }))).toBe(1200)
+  })
+
+  it('is zero at or above the target', () => {
+    expect(goalAmountLeft(goal({ savedAmount: 1200 }))).toBe(0)
+    expect(goalAmountLeft(goal({ savedAmount: 1500 }))).toBe(0)
   })
 })

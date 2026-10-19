@@ -94,5 +94,6 @@ describe('overview', () => {
     const savings = await panel('Savings goals')
     expect(await within(savings).findByText('Trip to Japan')).toBeInTheDocument()
     expect(within(savings).getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25')
+    expect(within(savings).getByText('₫45,000,000 left')).toBeInTheDocument()
   })
 })
