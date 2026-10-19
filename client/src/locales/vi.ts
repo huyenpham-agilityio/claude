@@ -151,6 +151,7 @@ export const vi: Messages<typeof en> = {
     savedSoFar: 'Đã tiết kiệm được {{amount}}.',
     progressLabel: 'Tiến độ {{name}}',
     reached: 'Đã đạt mục tiêu',
+    amountLeft: 'Còn {{amount}}',
     noTargetDate: 'Chưa đặt ngày đạt mục tiêu',
     overdue: 'Đã quá ngày mục tiêu {{date}}',
     perMonth: 'Cần {{amount}} mỗi tháng để đạt trước {{date}}',
