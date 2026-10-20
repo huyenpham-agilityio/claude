@@ -1,0 +1,31 @@
+# Render Blueprint: one free web service. The database is a hosted Turso
+# (libSQL) database, because free Render services lose their disk on every
+# restart. Set DATABASE_URL and DATABASE_AUTH_TOKEN in the Render dashboard.
+services:
+  - type: web
+    name: household-expenses
+    runtime: node
+    plan: free
+    # Closest Render region to Vietnam; put the Turso database nearby too.
+    region: singapore
+    # Render's own pnpm sits on a read-only disk, so run the version pinned in
+    # package.json through corepack instead of enabling it. NODE_ENV=production
+    # would make pnpm skip the build tools, so install them explicitly.
+    buildCommand: corepack pnpm install --frozen-lockfile --prod=false && corepack pnpm build
+    startCommand: corepack pnpm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: COREPACK_ENABLE_DOWNLOAD_PROMPT
+        value: "0"
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_DIST
+        value: ../client/dist
+      - key: TRUST_PROXY
+        value: "true"
+      - key: REGISTRATION_OPEN
+        value: "true"
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_AUTH_TOKEN
+        sync: false

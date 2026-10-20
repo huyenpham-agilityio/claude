@@ -1,0 +1,65 @@
+import {
+  type BudgetCopy,
+  type BudgetInput,
+  type BudgetStatus,
+  budgetListResponseSchema,
+  budgetStatus,
+  budgetResponseSchema,
+  okResponseSchema,
+} from '@expenses/shared'
+import type { ProgressTone } from '@/components/ProgressBar'
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
+import { apiFetch, jsonBody } from './api.ts'
+import { compareNames, useLanguage } from './language.ts'
+import { useInvalidateLedger } from './invalidate.ts'
+
+export function useBudgets(month: string) {
+  const { language } = useLanguage()
+  return useQuery({
+    queryKey: ['budgets', month],
+    queryFn: () => apiFetch(`/budgets?month=${month}`, budgetListResponseSchema),
+    // The server sorts by character code; sort by the language's alphabet.
+    select: (data) => ({
+      ...data,
+      budgets: data.budgets.toSorted((a, b) =>
+        compareNames(a.category.name, b.category.name, language),
+      ),
+    }),
+    // Keep the old month on screen while the next one loads.
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useSaveBudget() {
+  return useMutation({
+    mutationFn: (input: BudgetInput) =>
+      apiFetch('/budgets', budgetResponseSchema, { method: 'PUT', body: JSON.stringify(input) }),
+    onSuccess: useInvalidateLedger(),
+  })
+}
+
+export function useCopyBudgets() {
+  return useMutation({
+    mutationFn: (input: BudgetCopy) =>
+      apiFetch('/budgets/copy', okResponseSchema, jsonBody('POST', input)),
+    onSuccess: useInvalidateLedger(),
+  })
+}
+
+export function useDeleteBudget() {
+  return useMutation({
+    mutationFn: (id: string) => apiFetch(`/budgets/${id}`, okResponseSchema, { method: 'DELETE' }),
+    onSuccess: useInvalidateLedger(),
+  })
+}
+
+const BUDGET_TONES: Record<BudgetStatus, ProgressTone> = {
+  ok: 'default',
+  warning: 'warning',
+  over: 'danger',
+}
+
+// The progress bar colour for a budget's spending.
+export function budgetTone(spent: number, limit: number): ProgressTone {
+  return BUDGET_TONES[budgetStatus(spent, limit)]
+}
