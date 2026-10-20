@@ -1,0 +1,5 @@
+Ideas, not yet tickets:
+ - Export a month as a PDF.
+ - Recurring transactions, like rent.
+ - A "split" for shared expenses.
+ - Charts for savings goals over time.
