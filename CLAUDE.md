@@ -34,7 +34,7 @@ sides, `server/` is Express + Prisma (SQLite locally, Turso in production),
 
 ## Never
 
-- Use npm or yarn; use pnpm via corepack. The lockfile is pnpm's.
+- Use npm or yarn; use pnpm via corepack. The lockfile is pnpm's. A Claude Code hook (`.claude/hooks/block-forbidden-commands.mjs`) blocks both.
 - Hard-code UI text, or show `error.message` to users.
 - Use floats for money, or `Intl`/`toLocale*` with `undefined` or at module level.
 - Edit a migration that's already committed; add a new one instead.
