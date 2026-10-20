@@ -46,6 +46,11 @@ const allowed = [
   'git status',
   'grep -rn npm README.md',
   'echo yarn is forbidden',
+  // Looking a command up does not run it.
+  'command -v npm',
+  'command -v yarn >/dev/null && echo found',
+  'which npm',
+  'type npm',
   // Redirections contain & and > but are not new commands.
   'pnpm test 2>&1 | tail -5',
   'echo done >&2',

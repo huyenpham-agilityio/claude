@@ -54,6 +54,8 @@ function commandWord(segment) {
     } else if (/^\w+=\S*$/.test(word)) {
       words.shift() // FOO=1 npm test
     } else if (prefix && word.startsWith('-')) {
+      // `command -v npm` only looks npm up; it does not run it.
+      if (prefix === 'command' && (word === '-v' || word === '-V')) return undefined
       words.shift()
       if (OPTIONS_WITH_VALUE[prefix]?.has(word)) words.shift()
     } else {
