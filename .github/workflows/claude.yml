@@ -1,0 +1,47 @@
+# Lets people ask Claude for help on issues and pull requests by writing
+# "@claude" in a comment, review or issue. Based on the example in
+# https://github.com/anthropics/claude-code-action
+#
+# Comments on issues and pull requests run the workflow from the default
+# branch, so this file must be on main to take effect.
+#
+# Needs the Claude GitHub App on the repository and a CLAUDE_CODE_OAUTH_TOKEN
+# secret (create the token with `claude setup-token`). It uses the Claude
+# subscription's usage, not a paid API key.
+name: Claude
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  claude:
+    # Run only when the text mentions @claude.
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
+    runs-on: ubuntu-latest
+    # Read access to the code is enough for reviews. Claude can still comment
+    # on pull requests and issues. Raise contents to write only if you want it
+    # to push commits.
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Keep each run short.
+          claude_args: --max-turns 5
