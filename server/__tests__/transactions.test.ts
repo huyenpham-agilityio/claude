@@ -221,3 +221,28 @@ describe('changing transactions', () => {
     expect((await list(mine)).transactions[0]!.amount).toBe(100)
   })
 })
+
+describe('quick search', () => {
+  it('finds only the signed-in account\'s notes', async () => {
+    const mine = await signUp('me@example.com')
+    const theirs = await signUp('them@example.com')
+    await add(mine, 'Rent', 100, '2026-10-01', 'my market run')
+    await add(theirs, 'Rent', 200, '2026-10-02', 'their market run')
+
+    const res = await mine.get('/api/transactions/search').query({ q: 'market' }).expect(200)
+
+    expect(res.body.results).toHaveLength(1)
+    expect(res.body.results[0]).toMatchObject({ note: 'my market run', date: '2026-10-01' })
+  })
+
+  it('treats the query as text, not as SQL', async () => {
+    const mine = await signUp('me@example.com')
+    const theirs = await signUp('them@example.com')
+    await add(mine, 'Rent', 100, '2026-10-01', 'mine')
+    await add(theirs, 'Rent', 200, '2026-10-02', 'theirs')
+
+    const res = await mine.get('/api/transactions/search').query({ q: "' OR '1'='1" }).expect(200)
+
+    expect(res.body.results).toEqual([])
+  })
+})

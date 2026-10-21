@@ -56,7 +56,7 @@ transactionsRouter.get('/', async (req, res) => {
       where,
       include: withCategory,
       orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-      skip: page * TRANSACTION_PAGE_SIZE,
+      skip: (page - 1) * TRANSACTION_PAGE_SIZE,
       take: TRANSACTION_PAGE_SIZE,
     }),
     prisma.transaction.groupBy({ by: ['type'], where, _sum: { amount: true }, _count: true }),
@@ -77,12 +77,14 @@ transactionsRouter.get('/', async (req, res) => {
 
 // Quick search over notes, used by the command bar.
 transactionsRouter.get('/search', async (req, res) => {
-  const userId = currentUser(req).id
   const q = String(req.query.q ?? '')
-  const rows = await prisma.$queryRawUnsafe(
-    `SELECT id, note, date FROM "Transaction" WHERE userId = '${userId}' AND note LIKE '%${q}%' ORDER BY date DESC LIMIT 20`,
-  )
-  res.json({ results: rows })
+  const rows = await prisma.transaction.findMany({
+    where: { userId: currentUser(req).id, note: { contains: q } },
+    select: { id: true, note: true, date: true },
+    orderBy: { date: 'desc' },
+    take: 20,
+  })
+  res.json({ results: rows.map((row) => ({ ...row, date: toDay(row.date) })) })
 })
 
 transactionsRouter.post('/', async (req, res) => {
@@ -101,7 +103,7 @@ transactionsRouter.patch('/:id', async (req, res) => {
   const { categoryId, amount, date, note } = transactionInputSchema.parse(req.body)
   const userId = currentUser(req).id
 
-  const existing = await prisma.transaction.findFirst({ where: { id: req.params.id } })
+  const existing = await prisma.transaction.findFirst({ where: { id: req.params.id, userId } })
   if (!existing) throw new HttpError(404, 'transactionNotFound')
   const category = await findOwnCategory(userId, categoryId)
 
@@ -115,7 +117,7 @@ transactionsRouter.patch('/:id', async (req, res) => {
 
 transactionsRouter.delete('/:id', async (req, res) => {
   const { count } = await prisma.transaction.deleteMany({
-    where: { id: req.params.id },
+    where: { id: req.params.id, userId: currentUser(req).id },
   })
   if (count === 0) throw new HttpError(404, 'transactionNotFound')
 
