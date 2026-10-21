@@ -31,6 +31,8 @@ sides, `server/` is Express + Prisma (SQLite locally, Turso in production),
 - **Tests** live in `__tests__/` next to the code. UI tests render real routes
   with `renderApp()` and stub the API with `mockApi()`
   (`client/src/__tests__/renderApp.tsx`).
+- **Reviews:** every pull request gets an automatic Claude review
+  (`.github/workflows/claude-review.yml`). Ask follow-up questions with `@claude`.
 
 ## Never
 
