@@ -34,3 +34,12 @@ describe('malformed requests', () => {
     expect(res.body).toEqual({ error: { code: 'invalidRequest', message: 'Invalid request' } })
   })
 })
+
+describe('debug endpoint', () => {
+  it('does not exist, and never returns the environment', async () => {
+    const res = await request(app).get('/api/health/debug').set('x-debug-key', 'anything')
+
+    expect(res.status).toBe(404)
+    expect(JSON.stringify(res.body)).not.toContain('DATABASE_URL')
+  })
+})

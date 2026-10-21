@@ -200,10 +200,7 @@ export function Transactions() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{transaction.category.name}</p>
                       {transaction.note && (
-                        <p
-                          className="truncate text-sm text-muted-foreground"
-                          dangerouslySetInnerHTML={{ __html: transaction.note }}
-                        />
+                        <p className="truncate text-sm text-muted-foreground">{transaction.note}</p>
                       )}
                     </div>
                     <p
