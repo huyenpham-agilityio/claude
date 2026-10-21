@@ -1,0 +1,58 @@
+# Reviews every new pull request, and every new push to one, without anyone
+# having to write "@claude". The review is posted as a comment on the pull
+# request. The mention workflow in claude.yml still handles follow-up questions.
+#
+# Needs the Claude GitHub App and the CLAUDE_CODE_OAUTH_TOKEN secret, like
+# claude.yml. Pull requests from forks do not get repository secrets, so this
+# skips them.
+name: Claude review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, synchronize]
+
+# A new push cancels the review of the previous commit.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Skip drafts and forks.
+    if: |
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    # Read-only on the code. Claude can only comment.
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Review this pull request against CLAUDE.md. Look for real bugs,
+            security problems, missing tests, and breaks of the conventions in
+            CLAUDE.md (money as integers, every query scoped to the signed-in
+            user, UI text through translation keys, shapes in shared/).
+            Skip style nitpicks.
+
+            Use `gh pr diff` and `gh pr view` to read the change. Post one
+            summary comment with `gh pr comment`. Say how serious each finding
+            is in words; do not use labels such as [P0] or [P2]. Only report
+            what you checked in the code, and say when you did not run it. If
+            you find nothing, say so in one line.
+          # Keep each run short, and let Claude only read and comment.
+          claude_args: |
+            --max-turns 10
+            --allowedTools "Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(git diff:*),Bash(git log:*)"
