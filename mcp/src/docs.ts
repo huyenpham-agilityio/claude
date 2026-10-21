@@ -30,9 +30,20 @@ export async function readDoc(id: string): Promise<string> {
   try {
     return await readFile(fileFor(id), 'utf8')
   } catch (error) {
-    if (error instanceof DocError) throw error
+    // Only a missing file is "no such document"; a permission problem or a
+    // folder with that name must not be reported as one.
+    if (error instanceof DocError || (error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
     throw new DocError(`No document named "${id}". Known documents: ${(await listDocs()).join(', ')}`)
   }
+}
+
+// Replaces the first occurrence of oldText. The new text is inserted as it is:
+// a plain string passed to String.replace would read "$&" or "$1" in it as
+// patterns.
+export function applyEdit(body: string, oldText: string, newText: string): string {
+  if (oldText === '') throw new DocError('old_text must not be empty.')
+  if (!body.includes(oldText)) throw new DocError(`"${oldText}" was not found in the document.`)
+  return body.replace(oldText, () => newText)
 }
 
 export async function writeDoc(id: string, body: string): Promise<void> {

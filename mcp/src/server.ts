@@ -1,7 +1,7 @@
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
-import { DocError, listDocs, readDoc, writeDoc } from './docs.ts'
+import { applyEdit, DocError, listDocs, readDoc, writeDoc } from './docs.ts'
 
 const server = new McpServer({ name: 'docs', version: '0.1.0' })
 
@@ -34,18 +34,17 @@ server.registerTool(
 server.registerTool(
   'edit_doc',
   {
-    description: 'Replace a piece of text in a document with new text. The old text must appear exactly.',
+    description:
+      'Replace the first occurrence of a piece of text in a document with new text. The old text must appear exactly and must not be empty.',
     inputSchema: {
       doc_id: z.string().describe('The id of the document to edit'),
-      old_text: z.string().describe('The exact text to replace'),
+      old_text: z.string().min(1).describe('The exact text to replace'),
       new_text: z.string().describe('The text to put in its place'),
     },
   },
   ({ doc_id, old_text, new_text }) =>
     guarded(async () => {
-      const body = await readDoc(doc_id)
-      if (!body.includes(old_text)) return failure(`"${old_text}" was not found in ${doc_id}.`)
-      await writeDoc(doc_id, body.replace(old_text, new_text))
+      await writeDoc(doc_id, applyEdit(await readDoc(doc_id), old_text, new_text))
       return text(`Edited ${doc_id}.`)
     }),
 )
