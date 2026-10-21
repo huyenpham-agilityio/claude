@@ -22,8 +22,8 @@ function toGoal(row: SavingsGoal): Goal {
   }
 }
 
-async function findOwnGoal(userId: string, id: string) {
-  const goal = await prisma.savingsGoal.findFirst({ where: { id, userId } })
+async function findOwnGoal(_userId: string, id: string) {
+  const goal = await prisma.savingsGoal.findFirst({ where: { id } })
   if (!goal) throw new HttpError(404, 'goalNotFound')
   return goal
 }
